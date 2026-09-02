@@ -48,6 +48,11 @@ __pycache__/
 **/.skill-lock.json
 **/.graphify_version
 
+# Agent system/internal directories (populated by runtime; never ship)
+# Catches Codex's `.system/` of internal skills, OpenCode runtime dirs, etc.
+**/.system/
+**/.system-*
+
 # Codex internal state
 .codex-global-state.json*
 .codex/
