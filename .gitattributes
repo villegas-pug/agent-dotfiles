@@ -1,0 +1,27 @@
+# Auto-detect text files, normalize line endings for cross-platform portability
+*               text=auto eol=lf
+
+# Markdown: always LF
+*.md            text eol=lf
+
+# JSON / JSONC / TOML / YAML: LF (data interchange formats)
+*.json          text eol=lf
+*.jsonc         text eol=lf
+*.toml          text eol=lf
+*.yaml          text eol=lf
+*.yml           text eol=lf
+
+# Source code: LF
+*.ts            text eol=lf
+*.js            text eol=lf
+*.mjs           text eol=lf
+*.cjs           text eol=lf
+*.py            text eol=lf
+
+# Shell scripts: LF on Linux/macOS, CRLF on Windows
+*.sh            text eol=lf
+
+# PowerShell: CRLF on Windows (PowerShell handles LF too but CRLF is canonical)
+*.ps1           text eol=crlf
+*.psm1          text eol=crlf
+*.psd1          text eol=crlf

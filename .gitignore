@@ -1,0 +1,58 @@
+# Agent runtime artifacts (should never be in the repo, but defensive)
+**/*.sqlite
+**/*.sqlite-shm
+**/*.sqlite-wal
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.jsonl
+**/*.bak-*
+
+# Secrets and environment
+.env
+.env.*
+*.local.*
+secrets/
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Editor temp files
+*.swp
+*.swo
+*~
+*.tmp
+.vscode/
+.idea/
+*.iml
+
+# Node (in case any skill bundles node_modules)
+node_modules/
+package-lock.json
+bun.lockb
+
+# Python (in case any skill bundles __pycache__)
+__pycache__/
+*.pyc
+*.pyo
+
+# Backup files produced by install.ps1 -Force
+**/*.bak-*
+
+# Skill-internal lock/version files that change frequently
+**/.skill-lock.json
+**/.graphify_version
+
+# Codex internal state
+.codex-global-state.json*
+.codex/
+.codex-*
+
+# OpenCode local cache/runtime
+.opencode-cache/
+.opencode-runtime/
