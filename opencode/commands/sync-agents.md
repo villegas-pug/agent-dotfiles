@@ -1,11 +1,11 @@
 ---
-description: Sincroniza contenido entre `opencode/` y `codex/` del repo `~/dotfiles/`. Modos canónicos: `dry-run` (default, vista previa), `apply` (aplica con confirmación por par), `help` (menú). Sin argumentos imprime el menú y se detiene — no analiza ni muta nada. Detecta skills, commands, agents, themes y AGENTS.md; propone mirrors con adaptaciones y resolución de drift.
+description: Sincroniza contenido entre `opencode/` y `codex/` del repo `~/agent-dotfiles/`. Modos canónicos: `dry-run` (default, vista previa), `apply` (aplica con confirmación por par), `help` (menú). Sin argumentos imprime el menú y se detiene — no analiza ni muta nada. Detecta skills, commands, agents, themes y AGENTS.md; propone mirrors con adaptaciones y resolución de drift.
 agent: build
 ---
 
 # Sync Agents — comando slash
 
-Comando canónico para mantener simetría cross-agent en el repo `~/dotfiles/`. Modos: `dry-run | apply | help`. **Sin args / args desconocido → imprimir menú y detenerse. No se analiza ni se muta el repo.**
+Comando canónico para mantener simetría cross-agent en el repo `~/agent-dotfiles/`. Modos: `dry-run | apply | help`. **Sin args / args desconocido → imprimir menú y detenerse. No se analiza ni se muta el repo.**
 
 ## Reglas de dispatch
 
@@ -68,15 +68,15 @@ Si el usuario responde `no` o silencio → cancelar y reportar "Cancelado por el
 
 El análisis se delega completamente al skill `sync-agents/SKILL.md`. El comando solo:
 
-1. Cambia al directorio del repo: `cd "C:\Users\cristopher\dotfiles"`.
+1. Cambia al directorio del repo: `cd "F:\work-space\agent-dotfiles"`.
 2. Invoca el skill (no se llama a un script externo; el LLM lee ambos lados directamente).
 3. Imprime el reporte tal cual lo devuelve el skill.
 
 Rutas de inspección esperadas:
 
 ```powershell
-$opencode = "C:\Users\cristopher\dotfiles\opencode"
-$codex    = "C:\Users\cristopher\dotfiles\codex"
+$opencode = "F:\work-space\agent-dotfiles\opencode"
+$codex    = "F:\work-space\agent-dotfiles\codex"
 ```
 
 ## Reglas duras
@@ -91,7 +91,7 @@ $codex    = "C:\Users\cristopher\dotfiles\codex"
 
 ## Estado del repo (no se commitea automáticamente)
 
-Ruta del repo: `C:\Users\cristopher\dotfiles`
+Ruta del repo: `F:\work-space\agent-dotfiles`
 
 Estado de git (solo informativo, no se muta):
 
@@ -115,10 +115,10 @@ No parafrasear ni filtrar el output del skill.
 
 ### Repo no encontrado
 
-Si `~/dotfiles/` no existe o no es un repo git:
+Si `~/agent-dotfiles/` no existe o no es un repo git:
 
 ```
-[ERROR] ~/dotfiles/ no encontrado o no es un repo git.
+[ERROR] ~/agent-dotfiles/ no encontrado o no es un repo git.
 Este comando solo aplica al repo dotfiles de OpenCode/Codex en este equipo.
 ```
 

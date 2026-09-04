@@ -50,8 +50,8 @@ Este repositorio contiene únicamente archivos 100% portables. Cualquier configu
 ## Instalación (primera vez)
 
 ```powershell
-git clone https://github.com/villegas-pug/agent-dotfiles.git $HOME\dotfiles
-cd $HOME\dotfiles
+git clone https://github.com/villegas-pug/agent-dotfiles.git $HOME\agent-dotfiles
+cd $HOME\agent-dotfiles
 .\install.ps1
 ```
 
@@ -84,14 +84,14 @@ El script crea los symlinks desde las rutas reales de los agentes hacia los arch
 Como los symlinks apuntan a archivos dentro del repo, cualquier edición en:
 
 - `~/.config/opencode/skills/foo/SKILL.md`
-- `~/dotfiles/opencode/skills/foo/SKILL.md`
+- `~/agent-dotfiles/opencode/skills/foo/SKILL.md`
 
 termina en el mismo archivo físico. Los agentes ven los cambios inmediatamente.
 
 ### Versionar cambios
 
 ```powershell
-cd $HOME\dotfiles
+cd $HOME\agent-dotfiles
 git status
 git add .
 git commit -m "feat(opencode): añadir skill mi-skill"
@@ -101,8 +101,8 @@ git push
 ### Sincronizar en otra máquina
 
 ```powershell
-git clone https://github.com/villegas-pug/agent-dotfiles.git $HOME\dotfiles
-cd $HOME\dotfiles
+git clone https://github.com/villegas-pug/agent-dotfiles.git $HOME\agent-dotfiles
+cd $HOME\agent-dotfiles
 .\install.ps1
 ```
 

@@ -5,7 +5,7 @@ agent: build
 
 # Dotfiles — comando slash
 
-Comando canónico para administrar el repo `~/dotfiles/`. Subacciones: `dry | sync | doctor | uninstall | help`. **Sin args / args desconocido → imprimir menú y detenerse. No se ejecuta PowerShell.**
+Comando canónico para administrar el repo `~/agent-dotfiles/`. Subacciones: `dry | sync | doctor | uninstall | help`. **Sin args / args desconocido → imprimir menú y detenerse. No se ejecuta PowerShell.**
 
 ## Reglas de dispatch
 
@@ -73,23 +73,23 @@ Esperar respuesta. Misma regla: solo `sí` inequívoco ejecuta.
 ## Comando a invocar (una vez confirmada la acción)
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File "C:\Users\cristopher\dotfiles\install.ps1" -DryRun
-pwsh -NoProfile -ExecutionPolicy Bypass -File "C:\Users\cristopher\dotfiles\install.ps1" -Doctor
-pwsh -NoProfile -ExecutionPolicy Bypass -File "C:\Users\cristopher\dotfiles\install.ps1" -Force
-pwsh -NoProfile -ExecutionPolicy Bypass -File "C:\Users\cristopher\dotfiles\install.ps1" -Uninstall
+pwsh -NoProfile -ExecutionPolicy Bypass -File "F:\work-space\agent-dotfiles\install.ps1" -DryRun
+pwsh -NoProfile -ExecutionPolicy Bypass -File "F:\work-space\agent-dotfiles\install.ps1" -Doctor
+pwsh -NoProfile -ExecutionPolicy Bypass -File "F:\work-space\agent-dotfiles\install.ps1" -Force
+pwsh -NoProfile -ExecutionPolicy Bypass -File "F:\work-space\agent-dotfiles\install.ps1" -Uninstall
 ```
 
 ## Reglas duras
 
 1. **Nunca** invocar `install.ps1 -Force` ni `install.ps1 -Uninstall` sin `sí` textual en el turno actual.
 2. **Nunca** aceptar argumentos fuera de la tabla. Si el usuario escribe `/dotfiles foo`, no es un error: es "muéstrale el menú".
-3. **Nunca** correr el script desde una ruta distinta a `~/dotfiles/`.
+3. **Nunca** correr el script desde una ruta distinta a `~/agent-dotfiles/`.
 4. **Nunca** borrar archivos `.bak-*` desde este comando.
 5. Si `install.ps1` aborta con `Developer Mode no está activo`, no se intenta ejecutar otra vez: se imprime la guía de activación y se detiene.
 
 ## Estado del repo (no se commitea automáticamente)
 
-Ruta del repo: `C:\Users\cristopher\dotfiles`
+Ruta del repo: `F:\work-space\agent-dotfiles`
 
 Estado de git (solo informativo):
 

@@ -1,11 +1,11 @@
 ---
 name: sync-agents
-description: Mantiene simetría entre los directorios `opencode/` y `codex/` del repo `~/dotfiles/`. Detecta y propone mirrors de skills, commands y agents; analiza drift en `AGENTS.md` y ofrece resolución (MERGE / A→B / B→A / skip). Modos: `dry-run` (default, solo propone) y `apply` (aplica con confirmación por par). Cargar cuando el usuario diga "sincroniza los agentes", "mirror las skills", "alinea opencode y codex", "qué difiere entre lados", "propone mirror", "aplica sync", o mencione explícitamente `sync-agents`.
+description: Mantiene simetría entre los directorios `opencode/` y `codex/` del repo `~/agent-dotfiles/`. Detecta y propone mirrors de skills, commands y agents; analiza drift en `AGENTS.md` y ofrece resolución (MERGE / A→B / B→A / skip). Modos: `dry-run` (default, solo propone) y `apply` (aplica con confirmación por par). Cargar cuando el usuario diga "sincroniza los agentes", "mirror las skills", "alinea opencode y codex", "qué difiere entre lados", "propone mirror", "aplica sync", o mencione explícitamente `sync-agents`.
 ---
 
 # Sync Agents Skill
 
-Metodología para mantener simetría estructural entre `opencode/` y `codex/` dentro del repo de dotfiles `~/dotfiles/`. **NO aplica a ningún otro repo.** Este skill describe el "cómo"; el "cuándo" se delega al usuario o al comando slash `/sync-agents`.
+Metodología para mantener simetría estructural entre `opencode/` y `codex/` dentro del repo de dotfiles `~/agent-dotfiles/`. **NO aplica a ningún otro repo.** Este skill describe el "cómo"; el "cuándo" se delega al usuario o al comando slash `/sync-agents`.
 
 ## Cuándo disparar
 
@@ -20,7 +20,7 @@ Cargar este skill cuando el usuario exprese intención de sincronización cross-
 
 **NO usar este skill** para:
 
-- Cualquier repositorio distinto a `~/dotfiles/`.
+- Cualquier repositorio distinto a `~/agent-dotfiles/`.
 - Operaciones de git (`commit`, `push`) — usar `/commit`.
 - Symlinks de dotfiles — usar el skill `dotfiles` o el comando `/dotfiles`.
 - Cambios al `AGENTS.md` del proyecto actual (no del repo dotfiles).
@@ -64,7 +64,7 @@ Sin argumento explícito → `dry-run`. Cualquier acción destructiva dentro de 
 
 - Strip `allowed-tools:` del frontmatter (Codex no lo usa). Solo aplica en dirección OC → CX.
 - Traducción provisional de `description:` si está en inglés → español con marca `⚠️ revisar`. Solo aplica en dirección CX → OC.
-- Reescritura de paths tipo `$CODEX_HOME/...` o `~/.codex/...` → `$DOTFILES_HOME/opencode/...` o `~/dotfiles/opencode/...`. Solo aplica en dirección CX → OC.
+- Reescritura de paths tipo `$CODEX_HOME/...` o `~/.codex/...` → `$DOTFILES_HOME/opencode/...` o `~/agent-dotfiles/opencode/...`. Solo aplica en dirección CX → OC.
 - Confirmar antes de escribir.
 
 **Drift** (mismo nombre, bytes distintos):
@@ -136,7 +136,7 @@ Caso especial: el drift aquí tiene **4 acciones disponibles** en lugar de 3.
 Estas transformaciones se aplican durante mirror o MERGE. Cualquier otra transformación requiere intervención manual.
 
 1. **Strip `allowed-tools:`** — Codex no lo usa; OC sí. Solo aplica en dirección OC → CX.
-2. **De-Codex paths** — paths tipo `$CODEX_HOME/skills/...` o `~/.codex/...` se reescriben a `$DOTFILES_HOME/opencode/skills/...` o `~/dotfiles/opencode/...`. Solo aplica en dirección CX → OC.
+2. **De-Codex paths** — paths tipo `$CODEX_HOME/skills/...` o `~/.codex/...` se reescriben a `$DOTFILES_HOME/opencode/skills/...` o `~/agent-dotfiles/opencode/...`. Solo aplica en dirección CX → OC.
 3. **Traducción provisional de `description:`** — si la `description:` del frontmatter está en inglés, traducir al español y marcar con `⚠️ revisar`. Solo aplica en dirección CX → OC.
 4. **Skip `codex/agents/*.yaml`** — nunca copiar a OpenCode.
 5. **Skip `sync-agents/SKILL.md` en auto-mirror** — es la misma skill en ambos lados; debe ser idéntica. No entra en el flujo de simetría.
@@ -171,7 +171,7 @@ Después de ejecutar el análisis (modo `dry-run`) o la aplicación (modo `apply
 ```
 === Sync Agents Report ===
 Modo: dry-run | apply
-Repo: ~/dotfiles/
+Repo: ~/agent-dotfiles/
 
 [ skills/ ]
   OK simétricos: <N> [<nombres>]
@@ -203,10 +203,10 @@ No parafrasear ni filtrar este output. Es la fuente de verdad para que el usuari
 
 ### Repo no encontrado
 
-Síntoma: `~/dotfiles/` no existe o `.git/` falta.
+Síntoma: `~/agent-dotfiles/` no existe o `.git/` falta.
 
 ```
-[ERROR] ~/dotfiles/ no encontrado o no es un repo git.
+[ERROR] ~/agent-dotfiles/ no encontrado o no es un repo git.
 Este skill solo aplica al repo dotfiles de OpenCode/Codex en este equipo.
 ```
 

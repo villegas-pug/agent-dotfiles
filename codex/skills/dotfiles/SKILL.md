@@ -1,11 +1,11 @@
 ---
 name: dotfiles
-description: Gestiona los symlinks de dotfiles para OpenCode y Codex instalados vía el script `install.ps1` del repo `~/dotfiles/`. Usar cuando el usuario diga "sincroniza / verifica / audita / revierte / vista previa / qué cambiaría" en relación a sus dotfiles, o cuando pida correr el script de bootstrap. Subacciones canónicas: `dry` (vista previa), `sync` (aplicar con backup), `doctor` (auditar), `uninstall` (revertir symlinks), `help` (menú).
+description: Gestiona los symlinks de dotfiles para OpenCode y Codex instalados vía el script `install.ps1` del repo `~/agent-dotfiles/`. Usar cuando el usuario diga "sincroniza / verifica / audita / revierte / vista previa / qué cambiaría" en relación a sus dotfiles, o cuando pida correr el script de bootstrap. Subacciones canónicas: `dry` (vista previa), `sync` (aplicar con backup), `doctor` (auditar), `uninstall` (revertir symlinks), `help` (menú).
 ---
 
 # Dotfiles Skill (Codex)
 
-Metodología para administrar el repositorio de dotfiles versionado en `~/dotfiles/` y su script de bootstrap `install.ps1`. **NO aplica al repositorio del proyecto actual**: solo a este dotfiles-repo personal.
+Metodología para administrar el repositorio de dotfiles versionado en `~/agent-dotfiles/` y su script de bootstrap `install.ps1`. **NO aplica al repositorio del proyecto actual**: solo a este dotfiles-repo personal.
 
 Este skill es el espejo Codex del `opencode/skills/dotfiles/SKILL.md`. Las reglas son las mismas; lo único que difiere es la forma de invocar (Codex no tiene comandos slash personalizados, toda la UX pasa por NL).
 
@@ -22,7 +22,7 @@ Cargar este skill cuando el usuario exprese intención relacionada con sus dotfi
 
 **NO usar este skill** para:
 
-- Cualquier repositorio distinto a `~/dotfiles/`.
+- Cualquier repositorio distinto a `~/agent-dotfiles/`.
 - Cambios al `AGENTS.md` del proyecto actual.
 - Tareas de git genéricas (`git commit`, `git push`) — están prohibidas salvo instrucción explícita.
 - Cualquier compilación, build, test o dev-server (prohibido por `codex/AGENTS.md`).
@@ -87,15 +87,15 @@ Subacciones disponibles:
 Codex ejecuta bash, no PowerShell nativo en Windows. Usar rutas con conversión `/c/...`:
 
 ```bash
-pwsh -NoProfile -ExecutionPolicy Bypass -File /c/Users/cristopher/dotfiles/install.ps1 -DryRun
-pwsh -NoProfile -ExecutionPolicy Bypass -File /c/Users/cristopher/dotfiles/install.ps1 -Doctor
-pwsh -NoProfile -ExecutionPolicy Bypass -File /c/Users/cristopher/dotfiles/install.ps1 -Force
-pwsh -NoProfile -ExecutionPolicy Bypass -File /c/Users/cristopher/dotfiles/install.ps1 -Uninstall
+pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -DryRun
+pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -Doctor
+pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -Force
+pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -Uninstall
 ```
 
-Ruta local del script: `C:\Users\cristopher\dotfiles\install.ps1`.
+Ruta local del script: `F:\work-space\agent-dotfiles\install.ps1`.
 
-**Nunca** correr `install.ps1` desde una ruta distinta a `~/dotfiles/`.
+**Nunca** correr `install.ps1` desde una ruta distinta a `~/agent-dotfiles/`.
 
 ## Casos de error conocidos
 
@@ -124,7 +124,7 @@ Debe ser `1`.
 
 ### Symlinks rotos (FAIL en `doctor`)
 
-1. Verificar que `~/dotfiles/` exista.
+1. Verificar que `~/agent-dotfiles/` exista.
 2. Si el repo fue movido: regenerar con `-Force`.
 3. Si fue eliminado: ofrecer `uninstall` para limpiar symlinks huérfanos.
 
@@ -136,7 +136,7 @@ El script **nunca** los borra. Mencionar al usuario si ve residuos viejos. Acci�
 
 1. **Nunca** auto-ejecutar `-Force` ni `-Uninstall` sin `sí` textual del usuario en el turno actual.
 2. **Nunca** borrar archivos `*.bak-*` sin instrucción explícita.
-3. **Nunca** correr `install.ps1` desde una ruta distinta a `~/dotfiles/`.
+3. **Nunca** correr `install.ps1` desde una ruta distinta a `~/agent-dotfiles/`.
 4. Si la intención del usuario es ambigua, preferir la opción read-only más cercana (default: `doctor`).
 5. Si el frontmatter `description:` y una frase del usuario entran en conflicto, seguir la intención del usuario, no la palabra clave literal.
 6. **Nunca** ejecutar el script si el repo está incompleto (`install.ps1 -Doctor` reporta `WARN` por `target file does not exist in repo`); informar al usuario antes de cualquier acción.

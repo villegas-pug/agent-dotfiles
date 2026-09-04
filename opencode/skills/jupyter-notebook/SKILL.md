@@ -27,11 +27,11 @@ Prefer the bundled templates and the helper script for consistent structure and 
 ## Skill path (set once)
 
 ```bash
-export DOTFILES_HOME="${DOTFILES_HOME:-$HOME/dotfiles}"
+export DOTFILES_HOME="${DOTFILES_HOME:-$HOME/agent-dotfiles}"
 export JUPYTER_NOTEBOOK_CLI="$DOTFILES_HOME/opencode/skills/jupyter-notebook/scripts/new_notebook.py"
 ```
 
-Skills del repo dotfiles viven bajo `$DOTFILES_HOME/opencode/skills/...` (default: `~/dotfiles/opencode/skills/`).
+Skills del repo dotfiles viven bajo `$DOTFILES_HOME/opencode/skills/...` (default: `~/agent-dotfiles/opencode/skills/`).
 
 ## Workflow
 1. Lock the intent.

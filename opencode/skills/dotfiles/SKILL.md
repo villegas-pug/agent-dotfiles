@@ -1,11 +1,11 @@
 ---
 name: dotfiles
-description: Gestiona los symlinks de dotfiles para OpenCode y Codex instalados vía el script `install.ps1` del repo `~/dotfiles/`. Usar cuando el usuario diga "sincroniza / verifica / audita / revierte / vista previa / qué cambiaría" en relación a sus dotfiles. Subacciones canónicas: `dry` (vista previa), `sync` (aplicar con backup), `doctor` (auditar), `uninstall` (revertir symlinks), `help` (menú).
+description: Gestiona los symlinks de dotfiles para OpenCode y Codex instalados vía el script `install.ps1` del repo `~/agent-dotfiles/`. Usar cuando el usuario diga "sincroniza / verifica / audita / revierte / vista previa / qué cambiaría" en relación a sus dotfiles. Subacciones canónicas: `dry` (vista previa), `sync` (aplicar con backup), `doctor` (auditar), `uninstall` (revertir symlinks), `help` (menú).
 ---
 
 # Dotfiles Skill
 
-Metodología para administrar el repositorio de dotfiles versionado en `~/dotfiles/` y su script de bootstrap `install.ps1`. **NO aplica al repositorio del proyecto actual**: solo a este dotfiles-repo personal.
+Metodología para administrar el repositorio de dotfiles versionado en `~/agent-dotfiles/` y su script de bootstrap `install.ps1`. **NO aplica al repositorio del proyecto actual**: solo a este dotfiles-repo personal.
 
 ## Cuándo disparar
 
@@ -20,7 +20,7 @@ Cargar este skill cuando el usuario exprese intención relacionada con sus dotfi
 
 **NO usar este skill** para:
 
-- Cualquier repositorio distinto a `~/dotfiles/`.
+- Cualquier repositorio distinto a `~/agent-dotfiles/`.
 - Cambios al `AGENTS.md` del proyecto actual.
 - Tareas de git genéricas (commit, push) — esas las maneja el comando `/commit`.
 - Comandos de OpenCode/Codex del propio proyecto (e.g., crear otro skill).
@@ -88,7 +88,7 @@ Antes de invocar `install.ps1 -Uninstall`:
 
 ## Cómo invocar el script
 
-Desde la raíz del repo (`~/dotfiles/`):
+Desde la raíz del repo (`~/agent-dotfiles/`):
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File ./install.ps1 -DryRun
@@ -97,9 +97,9 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File ./install.ps1 -Force
 pwsh -NoProfile -ExecutionPolicy Bypass -File ./install.ps1 -Uninstall
 ```
 
-Ruta absoluta en esta máquina: `C:\Users\cristopher\dotfiles\install.ps1`.
+Ruta absoluta en esta máquina: `F:\work-space\agent-dotfiles\install.ps1`.
 
-**Nunca** correr `install.ps1` desde una ruta distinta a `~/dotfiles/`. Los symlinks se crean relativos al repo; cambiar de directorio produce symlinks que no resuelven.
+**Nunca** correr `install.ps1` desde una ruta distinta a `~/agent-dotfiles/`. Los symlinks se crean relativos al repo; cambiar de directorio produce symlinks que no resuelven.
 
 ## Casos de error conocidos
 
@@ -135,7 +135,7 @@ Síntoma: `install.ps1 -Doctor` reporta `FAIL` con "symlink broken".
 
 Pasos:
 
-1. Verificar que `~/dotfiles/` exista; si fue movido o eliminado, los symlinks quedan huérfanos.
+1. Verificar que `~/agent-dotfiles/` exista; si fue movido o eliminado, los symlinks quedan huérfanos.
 2. Si el repo fue movido de carpeta: regenerar con `-Force` (los symlinks anteriores se borran al reemplazarse; no se crean backups de symlinks porque no son archivos reales).
 3. Si el repo fue eliminado: ofrecer `uninstall` para limpiar symlinks huérfanos. No queda forma de restaurar los archivos; los `*.bak-*` siguen en su ubicación original.
 
@@ -147,7 +147,7 @@ El script **nunca borra** los `*.bak-*`. Si `doctor` reporta que todo está OK p
 
 1. **Nunca** auto-ejecutar `-Force` ni `-Uninstall` sin `sí` textual del usuario en el turno actual.
 2. **Nunca** borrar archivos `*.bak-*` sin instrucción explícita.
-3. **Nunca** correr `install.ps1` desde una ruta distinta a `~/dotfiles/`.
+3. **Nunca** correr `install.ps1` desde una ruta distinta a `~/agent-dotfiles/`.
 4. Si la intención del usuario es ambigua, preferir la opción read-only más cercana a la intención (default: `doctor`).
 5. Si el frontmatter `description:` y una frase del usuario entran en conflicto, seguir la intención del usuario, no la palabra clave literal.
 6. **Nunca** ejecutar el script si faltan archivos en el repo (cuando `install.ps1 -Doctor` reporta `WARN` por `target file does not exist in repo`); informar al usuario que el repo está incompleto antes de cualquier acción.
