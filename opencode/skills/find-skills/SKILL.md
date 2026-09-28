@@ -1,6 +1,6 @@
 ---
 name: find-skills
-description: Helps users discover and install agent skills when they ask questions like "how do I do X", "find a skill for X", "is there a skill that can...", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.
+description: Ayuda a descubrir e instalar skills para agentes AI cuando el usuario hace preguntas del tipo "cómo hago X", "busca un skill para X", "existe un skill que…", o expresa interés en extender las capacidades del agente. Usar cuando el usuario busca funcionalidad que pueda existir como skill instalable.
 ---
 
 # Find Skills

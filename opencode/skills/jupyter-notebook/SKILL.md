@@ -24,14 +24,9 @@ Prefer the bundled templates and the helper script for consistent structure and 
 - If the request is instructional, step-by-step, or audience-specific, choose `tutorial`.
 - If editing an existing notebook, treat it as a refactor: preserve intent and improve structure.
 
-## Skill path (set once)
+## Skill path
 
-```bash
-export DOTFILES_HOME="${DOTFILES_HOME:-$HOME/agent-dotfiles}"
-export JUPYTER_NOTEBOOK_CLI="$DOTFILES_HOME/opencode/skills/jupyter-notebook/scripts/new_notebook.py"
-```
-
-Skills del repo dotfiles viven bajo `$DOTFILES_HOME/opencode/skills/...` (default: `~/agent-dotfiles/opencode/skills/`).
+Localiza `scripts/new_notebook.py` **relativo al directorio de esta skill**, también cuando la carpeta instalada sea un enlace simbólico. No supongas que el clon se encuentre bajo `~/agent-dotfiles`. En PowerShell puedes invocar `python "<directorio-de-la-skill>/scripts/new_notebook.py"` después de verificar que existe.
 
 ## Workflow
 1. Lock the intent.
@@ -41,18 +36,12 @@ Capture the objective, audience, and what "done" looks like.
 2. Scaffold from the template.
 Use the helper script to avoid hand-authoring raw notebook JSON.
 
-```bash
-uv run --python 3.12 python "$JUPYTER_NOTEBOOK_CLI" \
-  --kind experiment \
-  --title "Compare prompt variants" \
-  --out output/jupyter-notebook/compare-prompt-variants.ipynb
+```powershell
+python "<directorio-de-la-skill>/scripts/new_notebook.py" --kind experiment --title "Compare prompt variants" --out output/jupyter-notebook/compare-prompt-variants.ipynb
 ```
 
-```bash
-uv run --python 3.12 python "$JUPYTER_NOTEBOOK_CLI" \
-  --kind tutorial \
-  --title "Intro to embeddings" \
-  --out output/jupyter-notebook/intro-to-embeddings.ipynb
+```powershell
+python "<directorio-de-la-skill>/scripts/new_notebook.py" --kind tutorial --title "Intro to embeddings" --out output/jupyter-notebook/intro-to-embeddings.ipynb
 ```
 
 3. Fill the notebook with small, runnable steps.
@@ -70,7 +59,7 @@ Prefer targeted edits over full rewrites.
 If you must edit raw JSON, review `references/notebook-structure.md` first.
 
 6. Validate the result.
-Run the notebook top-to-bottom when the environment allows.
+Run the notebook top-to-bottom only with explicit authorization to execute it.
 If execution is not possible, say so explicitly and call out how to validate locally.
 Use the final pass checklist in `references/quality-checklist.md`.
 
@@ -79,7 +68,7 @@ Use the final pass checklist in `references/quality-checklist.md`.
 - The helper script loads a template, updates the title cell, and writes a notebook.
 
 Script path:
-- `$JUPYTER_NOTEBOOK_CLI` (default: `$DOTFILES_HOME/opencode/skills/jupyter-notebook/scripts/new_notebook.py`)
+- `scripts/new_notebook.py` dentro del directorio de esta skill.
 
 ## Temp and output conventions
 - Use `tmp/jupyter-notebook/` for intermediate files; delete when done.

@@ -1,171 +1,82 @@
 # agent-dotfiles
 
-Baúl de dotfiles para configuraciones reutilizables de agentes AI: **OpenCode** y **Codex CLI**.
+Dotfiles versionados para **OpenCode**, **Codex CLI** y **Claude Code CLI** en Windows. El clon desde el que se invoca `install.ps1` es la fuente de la instalación local. Solo se versiona configuración portable; credenciales, proveedores, sesiones, caches y plugins de la máquina permanecen fuera del repositorio.
 
-Este repositorio contiene únicamente archivos 100% portables. Cualquier configuración dependiente de la máquina (paths absolutos, API keys, identificadores de cuenta, estado runtime) queda fuera por diseño.
+## Estructura
 
-## Agentes cubiertos
-
-| Agente | Versión cubierta |
-|---|---|
-| OpenCode | `~/.config/opencode/` |
-| Codex CLI | `~/.codex/` |
-
-## Estructura del repositorio
-
-```
-.
-├── README.md
-├── install.ps1                # bootstrap con 4 modos (DryRun, Force, Uninstall, Doctor)
-├── .gitignore
-├── .editorconfig
-├── .gitattributes
-│
-├── opencode/                  # → ~/.config/opencode/
-│   ├── AGENTS.md              # reglas globales para OpenCode
-│   ├── agents/                # sub-agentes (.md)
-│   ├── commands/              # slash commands (.md)
-│   ├── skills/                # skills estilo Agent Skills
-│   └── themes/                # temas de color (preventivo)
-│
-└── codex/                     # → ~/.codex/
-    ├── AGENTS.md              # reglas globales para Codex
-    ├── agents/                # sub-agentes (.toml)
-    └── skills/                # skills estilo Agent Skills
+```text
+AGENTS.md                 Única fuente de reglas globales para los tres arneses
+install.ps1               Instalación y auditoría de enlaces (PowerShell 7+)
+opencode/commands/        Comandos slash propios de OpenCode
+opencode/skills/          Skills propias y compartidas con Claude Code
+opencode/agents/          Agentes Markdown con frontmatter de OpenCode
+opencode/themes/          Temas de OpenCode
+codex/skills/             Skills de Codex, espejos semánticos de las compatibles
+codex/agents/             Agentes TOML de Codex
+claude/agents/            Agentes Markdown con frontmatter de Claude Code
 ```
 
-## Requisitos
+Claude Code invoca las skills directamente con `/nombre`: las compatibles enlazan individualmente a `opencode/skills/`. No se crean copias de ellas bajo `claude/skills/`; el catálogo efectivo de skills compartidas está en `install.ps1`.
 
-- **Windows 10/11** con **Modo Desarrollador** activo.
-- **PowerShell 7+** (`pwsh`). Windows PowerShell 5.x no es soportado.
-- **Git** instalado (para clonar y pushear).
-- **OpenCode** y/o **Codex CLI** instalados y configurados en el sistema.
+## Instalación en otra PC
 
-### Activar el Modo Desarrollador
-
-1. Configuración de Windows → Privacidad y seguridad → Desarrolladores (o "Para programadores")
-2. Activar "Modo Desarrollador"
-3. Confirmar la advertencia de UAC
-
-## Instalación (primera vez)
+1. Clona este repositorio en cualquier ruta de Windows.
+2. Usa PowerShell **7+** y activa el Modo Desarrollador para permitir enlaces simbólicos.
+3. Desde el clon, inspecciona y después instala:
 
 ```powershell
-git clone https://github.com/villegas-pug/agent-dotfiles.git $HOME\agent-dotfiles
-cd $HOME\agent-dotfiles
+.\install.ps1 -DryRun
 .\install.ps1
+.\install.ps1 -Doctor
 ```
 
-El script crea los symlinks desde las rutas reales de los agentes hacia los archivos versionados en el repo. Es idempotente: puedes ejecutarlo varias veces sin romper nada.
+La ejecución normal **reemplaza sin respaldos** los archivos y directorios existentes en las rutas mapeadas. `-DryRun` indica exactamente cuáles sustituiría; los archivos reales contenidos en esas rutas dejarán de existir. No se crea ningún `.bak-*`. Si una fuente requerida falta en el clon, el instalador detiene la instalación antes de reemplazar destinos. `-Force` se acepta por compatibilidad con invocaciones anteriores, con el mismo comportamiento que la ejecución normal y sin respaldos.
 
-## Modos de uso de `install.ps1`
-
-| Comando | Propósito |
+| Parámetro | Efecto |
 |---|---|
-| `.\install.ps1` | Crea los symlinks que falten. Idempotente. |
-| `.\install.ps1 -DryRun` | Muestra el plan de acción sin tocar el filesystem. |
-| `.\install.ps1 -Force` | Si un destino existe como archivo real, hace backup con timestamp y reemplaza con el symlink. |
-| `.\install.ps1 -Uninstall` | Elimina los symlinks creados por este script. No toca archivos reales. |
-| `.\install.ps1 -Doctor` | Audita cada mapeo y reporta estado (OK / WARN / FAIL). |
+| `-DryRun` | Muestra creaciones y sustituciones sin modificar nada |
+| Ninguno | Crea o corrige los enlaces a este clon; es idempotente |
+| `-Doctor` | Comprueba si cada enlace apunta a la fuente correcta de este clon |
+| `-Uninstall` | Quita únicamente enlaces que aún apuntan a este clon; conserva los archivos reales |
+| `-Uninstall -DryRun` | Muestra los enlaces que se quitarían |
 
-## Cuándo re-ejecutar `install.ps1`
+El script solo instala las rutas que mapea. No reemplaza enteros `~/.codex/`, `~/.config/opencode/` ni `~/.claude/`. En particular, conserva `~/.claude/skills/synced/` (descargas gestionadas por Claude), `~/.claude/settings.json`, credenciales y sesiones. Una skill compartida se instala una vez bajo `~/.claude/skills/<nombre>/` y OpenCode también la descubre allí: evita registrar dos skills con el mismo nombre. Las skills exclusivas de OpenCode van bajo `~/.config/opencode/skills/<nombre>/`.
 
-| Situación | Acción |
+### Rutas de reglas y agentes
+
+| Fuente en el clon | Destino en la máquina |
 |---|---|
-| Primera instalación | `.\install.ps1` una vez |
-| `git pull` trajo archivos **nuevos** en `opencode/` o `codex/` | `.\install.ps1` para crear los symlinks nuevos |
-| `git pull` solo modificó archivos existentes | No es necesario (los symlinks ya apuntan al archivo actualizado) |
-| Eliminaste un archivo del repo | `.\install.ps1 -Uninstall` para limpiar el symlink huérfano |
-| Sospechas que algo está mal | `.\install.ps1 -Doctor` |
+| `AGENTS.md` | `~/.codex/AGENTS.md` |
+| `AGENTS.md` | `~/.config/opencode/AGENTS.md` |
+| `AGENTS.md` | `~/.claude/CLAUDE.md` |
+| `codex/agents/`, `codex/skills/` | `~/.codex/agents/`, `~/.codex/skills/` |
+| `opencode/agents/`, `opencode/commands/`, `opencode/themes/` | `~/.config/opencode/agents/`, `commands/`, `themes/` |
+| `claude/agents/` | `~/.claude/agents/` |
 
-## Flujo de trabajo diario
+Cuando se migra una instalación anterior, el script sustituye el antiguo enlace del directorio completo de skills de OpenCode por enlaces individuales. Los enlaces usan rutas relativas **calculadas desde la ubicación de este clon**; si luego mueves el clon, vuelve a instalar desde la nueva ubicación. Cuando un `git pull` solo cambia archivos dentro de directorios enlazados, no hace falta reinstalar. Cuando cambia un mapeo o se rompe un enlace, vuelve a usar `-DryRun` e instala.
 
-### Editar o crear contenido
+## Dos operaciones diferentes
 
-Como los symlinks apuntan a archivos dentro del repo, cualquier edición en:
+- **`install.ps1` / `/dotfiles`**: enlaza las rutas locales de los tres arneses al clon. En OpenCode: `/dotfiles dry`, `/dotfiles sync`, `/dotfiles doctor` o `/dotfiles uninstall`; Codex usa la skill `$dotfiles` y Claude Code `/dotfiles`. Las acciones de sustitución solicitadas al agente requieren confirmación humana.
+- **`sync-agents`**: compara y alinea **archivos dentro del clon**, sin tocar enlaces. Por defecto solo informa; `apply` pide dirección y confirmación por elemento. Skills: OpenCode ↔ Codex; Claude comparte la versión compatible de OpenCode. Agentes: OpenCode `.md` ↔ Codex `.toml` ↔ Claude `.md`, con adaptación al formato nativo y revisión de campos sin equivalencia. Solo existe un `AGENTS.md` en la raíz, por lo que no se sincroniza por pares.
 
-- `~/.config/opencode/skills/foo/SKILL.md`
-- `~/agent-dotfiles/opencode/skills/foo/SKILL.md`
+OpenCode: `/sync-agents dry-run` o `/sync-agents apply`. Codex: invoca `$sync-agents` e indica `dry-run` o `apply`. Claude Code: `/sync-agents` e indica el modo. La sincronización local del clon no crea commits ni publica cambios en el remoto.
 
-termina en el mismo archivo físico. Los agentes ven los cambios inmediatamente.
+## Prompt Augmenter
 
-### Versionar cambios
+Invoca `$prompt-augmenter` en Codex, `/prompt-augmenter` en OpenCode o `/prompt-augmenter` en Claude Code. Selecciona uno o varios augmenters de Analysis, Safety, Quality y Behavior; proporciona el prompt base si aún falta. La skill leerá **solo las instrucciones de los elegidos**, informará qué aplicará y ejecutará la solicitud preservando su objetivo.
 
-```powershell
-cd $HOME\agent-dotfiles
-git status
-git add .
-git commit -m "feat(opencode): añadir skill mi-skill"
-git push
-```
+Ejemplo: invocar `/prompt-augmenter` → elegir `impact-analysis`, `regression-safety`, `scope-guard` y `test-impact` → escribir «Corrige el cálculo del costo de envío en el carrito» → la skill aplica esos cuatro criterios mientras corrige el cálculo. En Codex se inicia con `$prompt-augmenter` y el mismo flujo.
 
-### Sincronizar en otra máquina
+Para añadir un augmenter, crea `references/<nombre>.md` dentro de `prompt-augmenter` y una entrada resumida en `SKILL.md`; refleja el cambio en Codex. OpenCode y Claude Code ya comparten una sola fuente.
 
-```powershell
-git clone https://github.com/villegas-pug/agent-dotfiles.git $HOME\agent-dotfiles
-cd $HOME\agent-dotfiles
-.\install.ps1
-```
+Las skills `git-push-cloud` y `kill-session-processes` también tienen entradas directas para Codex (`$git-push-cloud`, `$kill-session-processes`) y Claude Code (`/git-push-cloud`, `/kill-session-processes`). En OpenCode siguen disponibles mediante `/push-cloud` y `/kill-servers`. Publicar commits o terminar procesos exige las confirmaciones descritas en cada skill; ninguna de esas acciones ocurre durante la sincronización o instalación.
 
-## Qué NO está en este repo
+## Límites
 
-Por diseño, quedan **fuera del versionado** los siguientes archivos:
+- El instalador no ejecuta `sync-agents`, builds ni pruebas.
+- Claude Code **CLI local** carga `~/.claude/skills/`; las sesiones cloud de Claude no cargan las skills personales de esa carpeta.
+- Los agentes con campos o capacidades sin equivalente entre arneses requieren una decisión explícita; `sync-agents` no inventa equivalencias de permisos o modelos.
+- Los symlinks requieren Modo Desarrollador en Windows o permisos para crearlos. OpenCode y Codex pueden necesitar reiniciar la sesión para descubrir cambios de configuración; Claude Code permite `/reload-skills` si el directorio de skills se creó después de iniciar la sesión.
 
-### OpenCode
-- `opencode.jsonc` (paths absolutos a binarios y al Vault)
-- `~/.config/opencode/plugins/` (los plugins Vault quedan locales)
-- Comandos y skills acoplados al Vault
-
-### Codex
-- `config.toml` (providers, marketplaces, proyectos locales)
-- `auth.json`, `installation_id`, `*.sqlite`, `*.jsonl`
-- `prompts/` (formato deprecated por OpenAI, sustituido por skills)
-- `skills/.system/` (skills internas de Codex)
-- `memories/skills/piip-*` (skills específicas del proyecto piip)
-- Estado runtime: `sessions/`, `plans/`, `artifacts/`, `cache/`, `browser/`, `log/`, `sqlite/`, etc.
-
-### `~/.agents/skills/`
-
-Las junctions `vault-*` que apuntan al Obsidian Vault quedan locales porque su fuente de verdad es el Vault, no este repositorio.
-
-## Hooks de Codex (no incluidos en v1)
-
-Los hooks de lifecycle de Codex viven en `~/.codex/hooks.json`. No están versionados porque los hooks actuales están acoplados al Vault y a plugins locales excluidos.
-
-### Cuándo agregarlos
-
-Cuando definas hooks que **no dependan del Vault ni de paths absolutos de máquina**:
-
-1. Crear `codex/hooks.json` con la configuración portable.
-2. Agregar scripts auxiliares en `codex/hooks/scripts/` (referenciados con rutas relativas).
-3. Agregar el mapeo correspondiente a la tabla de `install.ps1`:
-   ```
-   'codex/hooks.json' = (Join-Path $HOME '.codex\hooks.json')
-   ```
-4. Documentar en este README que los hooks Vault se mantienen locales.
-
-## Mapa de symlinks
-
-| Fuente en repo | Destino real |
-|---|---|
-| `opencode/AGENTS.md` | `~/.config/opencode/AGENTS.md` |
-| `opencode/agents/` | `~/.config/opencode/agents/` |
-| `opencode/commands/` | `~/.config/opencode/commands/` |
-| `opencode/skills/` | `~/.config/opencode/skills/` |
-| `opencode/themes/` | `~/.config/opencode/themes/` |
-| `codex/AGENTS.md` | `~/.codex/AGENTS.md` |
-| `codex/agents/` | `~/.codex/agents/` |
-| `codex/skills/` | `~/.codex/skills/` |
-
-Los symlinks se crean como **rutas relativas** desde el destino hacia el archivo en el repo, de modo que el repositorio puede moverse o clonarse en otra ruta sin necesidad de regenerar enlaces.
-
-## Compatibilidad verificada
-
-La estructura del repositorio refleja exactamente las rutas documentadas por cada agente:
-
-- OpenCode: `AGENTS.md`, `agents/`, `commands/`, `skills/`, `plugins/` (documentación oficial OpenCode).
-- Codex: `AGENTS.md`, `agents/*.toml`, `skills/<name>/SKILL.md` (verificado en `learn.chatgpt.com/codex/agent-configuration/subagents`).
-- Skills siguen el estándar abierto **Agent Skills** (`agentskills.io`).
-
-## Licencia
-
-Sin licencia definida. Tratar como personal hasta que se indique lo contrario.
+Sin licencia definida.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hybrid Email Format"
+  short_description: "Hybrid HTML email formatting for Gmail"
+  default_prompt: "Generate or apply a hybrid HTML email with the Analyst Programmer signature."

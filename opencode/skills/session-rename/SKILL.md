@@ -1,11 +1,11 @@
 ---
 name: session-rename
-description: Propone nombres en inglés en formato `{{feature}}-{{action}}` para la sesión actual de opencode a partir de un contexto en español. Usar cuando el usuario pida renombrar, nombrar, titular o etiquetar la sesión o el chat actual.
+description: Propone nombres en inglés en formato `{{feature}}-{{action}}` para la sesión actual de OpenCode, Codex o Claude Code a partir de un contexto en español. Usar cuando el usuario pida nombrar, titular o etiquetar su sesión.
 ---
 
 # Session Rename
 
-Genera propuestas de título para la sesión actual de opencode siguiendo estrictamente el formato `{{feature}}-{{action}}` en inglés, a partir de un contexto descrito en español.
+Genera propuestas de título para la sesión actual siguiendo estrictamente el formato `{{feature}}-{{action}}` en inglés, a partir de un contexto descrito en español.
 
 ## Regla inquebrantable
 
@@ -82,7 +82,7 @@ Responder siempre con este formato:
 5. (opcional) `<feature>-<action>` — justificación.
 ```
 
-Después de la lista, recordar al usuario que el SKILL **solo propone**: debe aplicar el título manualmente en el TUI de opencode. No hay API pública documentada que permita a un SKILL mutar el título de la sesión en ejecución.
+Después de la lista, recordar al usuario que el skill **solo propone**: debe aplicar el título manualmente en el arnés que esté usando.
 
 ## Ejemplos
 

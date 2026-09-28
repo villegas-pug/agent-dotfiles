@@ -1,152 +1,30 @@
 ---
 name: dotfiles
-description: Gestiona los symlinks de dotfiles para OpenCode y Codex instalados vía el script `install.ps1` del repo `~/agent-dotfiles/`. Usar cuando el usuario diga "sincroniza / verifica / audita / revierte / vista previa / qué cambiaría" en relación a sus dotfiles, o cuando pida correr el script de bootstrap. Subacciones canónicas: `dry` (vista previa), `sync` (aplicar con backup), `doctor` (auditar), `uninstall` (revertir symlinks), `help` (menú).
+description: Instala, audita o revierte los enlaces de dotfiles para OpenCode, Codex y Claude Code mediante install.ps1. Usar cuando el usuario pida sincronizar sus dotfiles locales, ver cambios, auditar enlaces o desinstalarlos.
 ---
 
-# Dotfiles Skill (Codex)
+# Dotfiles
 
-Metodología para administrar el repositorio de dotfiles versionado en `~/agent-dotfiles/` y su script de bootstrap `install.ps1`. **NO aplica al repositorio del proyecto actual**: solo a este dotfiles-repo personal.
+Esta skill gestiona **enlaces de la máquina al clon**, no las diferencias entre arneses dentro del clon (para eso usa `sync-agents`). Localiza `install.ps1` en el clon donde reside esta skill; no asumas `~/agent-dotfiles`, una unidad concreta ni que el directorio actual sea el clon. Ejecuta mediante PowerShell 7+: `pwsh -NoProfile -File <ruta-del-clon>/install.ps1 <opción>`.
 
-Este skill es el espejo Codex del `opencode/skills/dotfiles/SKILL.md`. Las reglas son las mismas; lo único que difiere es la forma de invocar (Codex no tiene comandos slash personalizados, toda la UX pasa por NL).
+## Modos
 
-## Cuándo disparar
+| Entrada | Parámetro | Efecto |
+|---|---|---|
+| `dry` | `-DryRun` | Muestra destinos nuevos y reemplazos sin modificar nada |
+| `doctor` | `-Doctor` | Audita el origen exacto de cada enlace sin modificar nada |
+| `sync` | sin parámetros | Instala o sustituye rutas mapeadas sin respaldos |
+| `uninstall` | `-Uninstall` | Quita solo enlaces que apuntan a este clon |
+| `help` | ninguno | Muestra estas opciones sin ejecutar el script |
 
-Cargar este skill cuando el usuario exprese intención relacionada con sus dotfiles, por ejemplo:
+Las rutas mapeadas provienen de la tabla del script, no de una suposición sobre el contenido de `~/.codex/`, `~/.config/opencode/` o `~/.claude/`. Las skills compartidas con Claude se instalan por nombre y nunca se sustituye `~/.claude/skills/` ni su carpeta `synced/`. Solo existe un `AGENTS.md` en la raíz del clon. `-Force` permanece como alias antiguo de `sync`; **no crea `.bak-*`**.
 
-- "sincroniza / aplica / actualiza / regenera mis dotfiles"
-- "verifica / audita / comprueba el estado de los dotfiles"
-- "qué cambiaría / vista previa / preview / simular"
-- "revierte / desinstala / quita / elimina los symlinks"
-- "qué hace este comando / ayuda / opciones / qué puedo hacer"
-- Cualquier mención explícita de las palabras clave canónicas.
+## Uso seguro
 
-**NO usar este skill** para:
+1. Sin argumentos o con `help`, muestra el menú y termina. Para solicitudes ambiguas, pregunta qué modo desea el usuario.
+2. `dry` y `doctor` son de lectura; presenta el resultado.
+3. Antes de `sync`, muestra el resultado de `-DryRun`, incluyendo cada archivo o directorio real que se perderá al sustituirse, y pide confirmación inequívoca. No ejecutes si falta alguna fuente del clon. Después de confirmación, invoca el script sin parámetros.
+4. Antes de `uninstall`, muestra los enlaces propios detectados y pide confirmación inequívoca. Nunca borres archivos reales durante la desinstalación.
+5. Si se movió el clon, vuelve a instalar los enlaces desde su nueva ubicación; el script obtiene el origen desde su propio directorio.
 
-- Cualquier repositorio distinto a `~/agent-dotfiles/`.
-- Cambios al `AGENTS.md` del proyecto actual.
-- Tareas de git genéricas (`git commit`, `git push`) — están prohibidas salvo instrucción explícita.
-- Cualquier compilación, build, test o dev-server (prohibido por `codex/AGENTS.md`).
-
-## Subacciones canónicas
-
-| Subacción | Flag `install.ps1` | Mutación | Side effects |
-|---|---|---|---|
-| `dry` | `-DryRun` | no | ninguno; solo imprime el plan |
-| `sync` | `-Force` | sí | backup con timestamp + crea/actualiza symlinks |
-| `doctor` | `-Doctor` | no | ninguno; auditoría |
-| `uninstall` | `-Uninstall` | sí | elimina symlinks; respeta archivos reales |
-| `help` | (no invoca script) | no | ninguno; imprime el menú |
-
-Hay un único estilo canónico: la palabra clave literal. No aliases. No inferencia si la frase no matchea la tabla de heurística.
-
-## Heurística NL → subacción
-
-Si la frase del usuario matchea claramente una categoría, **deducir** y aplicar el comportamiento de confirmación correspondiente.
-
-| Frase en español | Subacción deducida |
-|---|---|
-| "verifica / audita / comprueba / estado / salud / doctor" | `doctor` |
-| "qué cambiaría / vista previa / preview / plan / simular / dry-run" | `dry` |
-| "sincroniza / aplica / actualiza / regenera / refresca" | `sync` |
-| "revierte / desinstala / quita / elimina / remueve" | `uninstall` |
-| "ayuda / opciones / qué puedo hacer / qué hace este comando" | `help` |
-
-Cualquier otra frase — incluidas las ambiguas como "arregla", "configura", "ponlo a punto" — **no se deduce**. Se listan las 5 opciones en una línea y se pide aclaración.
-
-### Comportamiento por categoría
-
-- **Read-only** (`dry`, `doctor`, `help`): ejecutar directamente con la deducción + una línea de contexto. **Sin confirmación**.
-- **Destructivas** (`sync`, `uninstall`): **siempre** pedir confirmación explícita con resumen del impacto antes de correr.
-
-## Menú (respuesta cuando `help` / no deduce / intención ambigua)
-
-Subacciones disponibles:
-
-- `dry` — vista previa de cambios (sin tocar nada)
-- `sync` — crear / actualizar symlinks (hace backup automático)
-- `doctor` — auditar estado (sin tocar nada)
-- `uninstall` — revertir symlinks (no toca archivos ni backups)
-- `help` — reimprimir este menú
-
-## Confirmaciones obligatorias
-
-### `sync`
-
-1. Si no se conoce el plan, correr primero `dry` o estimar desde el estado actual.
-2. Resumir: "Voy a crear **M** symlinks nuevos y respaldar **N** archivos reales con sufijo `.bak-yyyyMMdd-HHmmss`."
-3. Preguntar: **"¿Confirmo?"** — esperar `sí` / `no` textual.
-4. Solo con `sí` explícito, correr `install.ps1 -Force`.
-
-### `uninstall`
-
-1. Recordar: "Los symlinks creados por este script se eliminan. Los backups `.bak-*` y los archivos que nunca fueron parte del repo **no** se tocan."
-2. Preguntar: **"¿Confirmo la eliminación de los N symlinks listados?"** — esperar `sí` / `no` textual.
-
-## Cómo invocar el script
-
-Codex ejecuta bash, no PowerShell nativo en Windows. Usar rutas con conversión `/c/...`:
-
-```bash
-pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -DryRun
-pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -Doctor
-pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -Force
-pwsh -NoProfile -ExecutionPolicy Bypass -File /f/work-space/agent-dotfiles/install.ps1 -Uninstall
-```
-
-Ruta local del script: `F:\work-space\agent-dotfiles\install.ps1`.
-
-**Nunca** correr `install.ps1` desde una ruta distinta a `~/agent-dotfiles/`.
-
-## Casos de error conocidos
-
-### Developer Mode apagado
-
-Si el script aborta con `[ERROR] Windows Developer Mode no está activo`:
-
-```
-1. Configuración de Windows → Privacidad y seguridad → Desarrolladores
-2. Activar "Modo Desarrollador"
-3. Confirmar UAC
-4. Volver a ejecutar
-```
-
-Verificación rápida:
-
-```bash
-powershell -NoProfile -Command "(Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock').AllowDevelopmentWithoutDevLicense"
-```
-
-Debe ser `1`.
-
-### Permiso insuficiente
-
-`New-Item SymbolicLink` fallando → Developer Mode o PowerShell como Administrador.
-
-### Symlinks rotos (FAIL en `doctor`)
-
-1. Verificar que `~/agent-dotfiles/` exista.
-2. Si el repo fue movido: regenerar con `-Force`.
-3. Si fue eliminado: ofrecer `uninstall` para limpiar symlinks huérfanos.
-
-### BACKUP `.bak-*` residuales
-
-El script **nunca** los borra. Mencionar al usuario si ve residuos viejos. Acción manual, no automática.
-
-## Reglas inquebrantables
-
-1. **Nunca** auto-ejecutar `-Force` ni `-Uninstall` sin `sí` textual del usuario en el turno actual.
-2. **Nunca** borrar archivos `*.bak-*` sin instrucción explícita.
-3. **Nunca** correr `install.ps1` desde una ruta distinta a `~/agent-dotfiles/`.
-4. Si la intención del usuario es ambigua, preferir la opción read-only más cercana (default: `doctor`).
-5. Si el frontmatter `description:` y una frase del usuario entran en conflicto, seguir la intención del usuario, no la palabra clave literal.
-6. **Nunca** ejecutar el script si el repo está incompleto (`install.ps1 -Doctor` reporta `WARN` por `target file does not exist in repo`); informar al usuario antes de cualquier acción.
-
-## Salida esperada
-
-Después de invocar el script, presentar al usuario:
-
-1. Una línea con la subacción ejecutada.
-2. El output del script **tal cual** lo devolvió.
-3. Una frase de cierre breve: "Symlinks en su lugar." / "Doctor terminó OK." / "Se respaldaron N archivos." / etc.
-
-No parafrasear ni filtrar el output del script.
+No hagas `git commit`, `push` ni ejecutes `sync-agents` como efecto colateral. Un `git pull` que solo cambió contenido dentro de los directorios enlazados no exige reinstalar; un mapeo nuevo o un enlace roto sí.

@@ -41,7 +41,7 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Backup files produced by install.ps1 -Force
+# Respaldos anteriores; la instalación actual no crea archivos .bak-*
 **/*.bak-*
 
 # Skill-internal lock/version files that change frequently
