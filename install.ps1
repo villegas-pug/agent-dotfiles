@@ -35,24 +35,25 @@ $targets = @(
     @{ Source = 'claude/agents'; Target = (Join-Path $HOME '.claude/agents') }
 )
 
-# OpenCode descubre también ~/.claude/skills. Instalar las compartidas una
-# sola vez evita dos definiciones con el mismo nombre. Las internas de OpenCode
-# conservan su ruta nativa y nunca se presentan a Claude.
-$sharedSkills = @(
-    'dotfiles', 'find-skills', 'git-push-cloud', 'hybrid-email-format', 'jupyter-notebook',
-    'kill-session-processes', 'obsidian-markdown', 'playwright-cli', 'prompt-augmenter',
-    'session-rename', 'sync-agents'
-)
+# Convención: toda skill de opencode/skills es compartida por defecto y se
+# instala una sola vez en ~/.claude/skills (OpenCode también lo descubre),
+# evitando dos definiciones con el mismo nombre. Las listadas en $openCodeOnly
+# son exclusivas de OpenCode: conservan su ruta nativa y nunca se presentan
+# a Claude. El catálogo ya no vive en este script: añadir una skill compartida
+# no requiere editarlo, basta crear su directorio y reinstalar.
+$openCodeOnly = @()
 $openCodeSkills = Join-Path $repoRoot 'opencode/skills'
 $openCodeSkillsTarget = Join-Path $HOME '.config/opencode/skills'
-$sharedShadowPaths = @()
+$claudeSkillsTarget = Join-Path $HOME '.claude/skills'
+$skillShadowPaths = @()
 
 foreach ($skill in Get-ChildItem -LiteralPath $openCodeSkills -Directory) {
-    if ($skill.Name -in $sharedSkills) {
-        $targets += @{ Source = "opencode/skills/$($skill.Name)"; Target = (Join-Path $HOME ".claude/skills/$($skill.Name)") }
-        $sharedShadowPaths += Join-Path $openCodeSkillsTarget $skill.Name
-    } else {
+    if ($skill.Name -in $openCodeOnly) {
         $targets += @{ Source = "opencode/skills/$($skill.Name)"; Target = (Join-Path $openCodeSkillsTarget $skill.Name) }
+        $skillShadowPaths += @{ Path = (Join-Path $claudeSkillsTarget $skill.Name); Reason = 'skill exclusiva de OpenCode fuera de su directorio' }
+    } else {
+        $targets += @{ Source = "opencode/skills/$($skill.Name)"; Target = (Join-Path $claudeSkillsTarget $skill.Name) }
+        $skillShadowPaths += @{ Path = (Join-Path $openCodeSkillsTarget $skill.Name); Reason = 'skill compartida duplicada en el directorio exclusivo' }
     }
 }
 
@@ -109,17 +110,17 @@ if ($Doctor) {
     }
 }
 
-# Limpiar nombres compartidos antiguos del directorio exclusivo de OpenCode.
+# Limpiar enlaces de skills ubicados fuera de su destino correspondiente.
 # Si el directorio antiguo es un enlace, eliminarlo basta: su destino se conserva.
 if (-not $Uninstall -and -not ($legacy -and $legacy.LinkType)) {
-    foreach ($shadow in $sharedShadowPaths) {
-        if (-not (Get-Item -LiteralPath $shadow -Force -ErrorAction SilentlyContinue)) { continue }
+    foreach ($shadow in $skillShadowPaths) {
+        if (-not (Get-Item -LiteralPath $shadow.Path -Force -ErrorAction SilentlyContinue)) { continue }
         if ($Doctor) {
-            "WARN $shadow (skill compartida duplicada)"
+            "WARN $($shadow.Path) ($($shadow.Reason))"
         } elseif ($DryRun) {
-            "would-replace $shadow (skill compartida duplicada)"
+            "would-replace $($shadow.Path) ($($shadow.Reason))"
         } else {
-            Remove-MappedPath -Target $shadow
+            Remove-MappedPath -Target $shadow.Path
         }
     }
 }

@@ -16,7 +16,7 @@ codex/agents/             Agentes TOML de Codex
 claude/agents/            Agentes Markdown con frontmatter de Claude Code
 ```
 
-Claude Code invoca las skills directamente con `/nombre`: las compatibles enlazan individualmente a `opencode/skills/`. No se crean copias de ellas bajo `claude/skills/`; el catálogo efectivo de skills compartidas está en `install.ps1`.
+Claude Code invoca las skills directamente con `/nombre`. Por convención, **toda skill de `opencode/skills/` es compartida por defecto** y se enlaza individualmente a `~/.claude/skills/<nombre>/`; OpenCode también la descubre allí. No se crean copias bajo `claude/skills/`. Las skills que jamás deban presentarse a Claude se listan en `$openCodeOnly` dentro de `install.ps1` y se enlazan solo en `~/.config/opencode/skills/`. Añadir una skill compartida no requiere editar el script: basta crear su directorio y reinstalar.
 
 ## Instalación en otra PC
 
@@ -62,11 +62,17 @@ Cuando se migra una instalación anterior, el script sustituye el antiguo enlace
 
 OpenCode: `/sync-agents dry-run` o `/sync-agents apply`. Codex: invoca `$sync-agents` e indica `dry-run` o `apply`. Claude Code: `/sync-agents` e indica el modo. La sincronización local del clon no crea commits ni publica cambios en el remoto.
 
+## Harness Sync
+
+Migra y sincroniza skills, comandos, agentes, instrucciones y configuración entre OpenCode, Claude Code y Codex **dentro del proyecto desde el que se invoca**. La skill es global; sus efectos son solo locales a ese repositorio: nunca escribe en las rutas globales de los arneses. Detecta los artefactos del proyecto, permite elegir origen y destino, clasifica cada equivalencia (directa | parcial | alternativa funcional | no soportada) y ejecuta un plan con estados (CREATE | UPDATE | UNCHANGED | ADAPT | UNSUPPORTED | CONFLICT) tras confirmación. Los artefactos generados llevan un bloque de provenance en su frontmatter que hace la operación idempotente y trazable en ciclos sucesivos (OpenCode → Claude Code → Codex → OpenCode). No crea backups: el git del proyecto es la red de seguridad.
+
+Invócala con `/harness-sync` en OpenCode y Claude Code, o `$harness-sync` en Codex. Para alinear artefactos **dentro de este clon** sigue correspondiendo `sync-agents`: cada skill cubre un ámbito distinto.
+
 ## Prompt Augmenter
 
-Invoca `$prompt-augmenter` en Codex, `/prompt-augmenter` en OpenCode o `/prompt-augmenter` en Claude Code. Selecciona uno o varios augmenters de Analysis, Safety, Quality y Behavior; proporciona el prompt base si aún falta. La skill leerá **solo las instrucciones de los elegidos**, informará qué aplicará y ejecutará la solicitud preservando su objetivo.
+Invoca `$prompt-augmenter` en Codex, `/prompt-augmenter` en OpenCode o `/prompt-augmenter` en Claude Code. Selecciona uno o varios augmenters de Analysis, Safety y Behavior; proporciona el prompt base si aún falta. La skill leerá **solo las instrucciones de los elegidos**, informará qué aplicará y ejecutará la solicitud preservando su objetivo.
 
-Ejemplo: invocar `/prompt-augmenter` → elegir `impact-analysis`, `regression-safety`, `scope-guard` y `test-impact` → escribir «Corrige el cálculo del costo de envío en el carrito» → la skill aplica esos cuatro criterios mientras corrige el cálculo. En Codex se inicia con `$prompt-augmenter` y el mismo flujo.
+Ejemplo: invocar `/prompt-augmenter` → elegir `impact-analysis`, `regression-safety` y `scope-guard` → escribir «Corrige el cálculo del costo de envío en el carrito» → la skill aplica esos tres criterios mientras corrige el cálculo. En Codex se inicia con `$prompt-augmenter`: el selector permite elegir **Omitir / Todos / Personalizar** por grupo, y **Personalizar** abre preguntas **Agregar / Omitir** por augmenter.
 
 Para añadir un augmenter, crea `references/<nombre>.md` dentro de `prompt-augmenter` y una entrada resumida en `SKILL.md`; refleja el cambio en Codex. OpenCode y Claude Code ya comparten una sola fuente.
 

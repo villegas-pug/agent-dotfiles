@@ -1,6 +1,6 @@
 ---
 name: sync-agents
-description: Compara y alinea skills y agentes entre OpenCode, Codex y Claude Code dentro del clon de agent-dotfiles. Usar cuando el usuario solicite sincronizar los arneses o revisar sus diferencias. Por defecto solo informa; apply requiere decisiones y confirmaciones por elemento.
+description: Compara y alinea skills y agentes entre OpenCode, Codex y Claude Code dentro del clon de agent-dotfiles. Si falta el modo, lo solicita mediante un selector; apply pide decisiones y confirmación por elemento.
 ---
 
 # Sync Agents
@@ -9,7 +9,13 @@ description: Compara y alinea skills y agentes entre OpenCode, Codex y Claude Co
 
 Trabaja exclusivamente sobre el clon de `agent-dotfiles` que contiene esta skill. Localiza el clon a partir de la ubicación real del archivo instalado; si no se puede determinar, solicita su ruta. No presupongas `~/agent-dotfiles`, una letra de unidad ni un shell Unix. `install.ps1` administra los enlaces de la máquina; esta skill administra contenido **dentro del clon**. No hagas `git commit`, `push`, builds ni pruebas.
 
-Modos: `dry-run` por defecto (solo lectura) y `apply` cuando el usuario lo indique explícitamente. Si hay ambigüedad, permanece en `dry-run`. En `apply`, muestra el borrador de cada par y espera selección y confirmación explícitas antes de escribir. Nunca sobreescribas divergencias automáticamente.
+Modos: `dry-run` (solo lectura) y `apply`. Respeta `dry-run` o `apply` si el usuario lo especificó en la invocación. Si no indicó modo, solicítalo mediante el selector conversacional antes de inspeccionar o escribir. `help` muestra los modos y termina; un argumento desconocido muestra las opciones válidas y termina sin operar. Cancelar el selector de modo termina sin cambios. Elegir `apply` permite iniciar el flujo, pero no autoriza por sí solo ninguna escritura: cada cambio requiere las decisiones y confirmaciones descritas abajo. Nunca sobreescribas divergencias automáticamente.
+
+## Selector conversacional
+
+- Usa el selector nativo del arnés cuando esté disponible: `request_user_input` o `request_user_input_async` en Codex, la herramienta `question` en OpenCode y `AskUserQuestion` en Claude Code. Si no está disponible, presenta opciones numeradas en la conversación y espera la respuesta. No interpretes una opción preseleccionada como respuesta hasta que el usuario la envíe.
+- Cuando falte el modo, ofrece `dry-run` y `apply`. En `apply`, presenta cada diferencia y su borrador antes de pedir decisiones. Para skills, ofrece la dirección aplicable y `Omitir`; para agentes, ofrece como fuente solo las versiones existentes y `Omitir`, y luego pregunta por cada destino por separado. Confirma cada escritura individualmente.
+- Si se cancela durante `apply`, no escribas el cambio pendiente ni proceses los siguientes; conserva los cambios anteriores que el usuario ya confirmó y aplicó. Una respuesta vacía o inválida no equivale a `Omitir`: vuelve a preguntar solo esa decisión.
 
 ## Descubrimiento e inspección
 
@@ -21,7 +27,7 @@ Modos: `dry-run` por defecto (solo lectura) y `apply` cuando el usuario lo indiq
 
 - Compara `opencode/skills/<nombre>/` con `codex/skills/<nombre>/` por archivos equivalentes, incluyendo referencias. No supongas que basta con comparar `SKILL.md`.
 - Las skills compatibles de Claude Code **usan el archivo de `opencode/skills/`** mediante enlaces individuales en `~/.claude/skills/`; no existe una tercera copia de ellas que reconciliar. Señala si el contenido usa herramientas o rutas exclusivas de OpenCode y propón una adaptación portable antes de marcarlo como compatible.
-- Si hay diferencias, ofrece siempre **OpenCode → Codex**, **Codex → OpenCode** u **omitir**. La dirección elegida es la fuente de verdad para ese par únicamente. Muestra los archivos afectados y adapta solo los detalles necesarios para que sigan siendo válidos en el destino.
+- Si hay diferencias, ofrece por selector **OpenCode → Codex**, **Codex → OpenCode** u **Omitir**. La dirección elegida es la fuente de verdad para ese par únicamente. Muestra los archivos afectados y el borrador adaptado, y confirma antes de escribir. Si falta el par destino, ofrece la propuesta de creación y pide confirmación antes de crearla.
 - No copies un frontmatter de permisos exclusivo de un arnés como concesión automática de permisos en otro. Mantén intactos los recursos y referencias que no cambian.
 - Una skill exclusiva de un arnés puede quedar exclusiva si no tiene equivalente funcional seguro; reporta la razón.
 
@@ -35,7 +41,7 @@ Empareja agentes por identidad declarada (`name`) y función, no por extensión.
 | Codex | `codex/agents/<nombre>.toml` | `name`, `description`, `developer_instructions` |
 | Claude Code | `claude/agents/<nombre>.md` | `name`, `description` en YAML; instrucciones en el cuerpo |
 
-- Cuando haya diferencias entre dos o tres versiones, muestra cuáles existen y ofrece como fuente **OpenCode**, **Codex** o **Claude Code**, según corresponda, además de **omitir**. Pregunta qué destino(s) actualizar; confirma **cada destino** antes de aplicar. Ningún arnés tiene prioridad permanente.
+- Cuando haya diferencias entre dos o tres versiones, muestra cuáles existen y ofrece por selector como fuente las versiones disponibles —**OpenCode**, **Codex** o **Claude Code**— además de **Omitir**. Pregunta por separado si se actualiza cada destino posible y confirma cada destino antes de escribir. Ningún arnés tiene prioridad permanente.
 - Convierte instrucciones, descripción y controles de forma semántica al formato nativo del destino. No copies `.toml` como `.md` ni supongas equivalencia entre modelos, herramientas, modos o permisos. Muestra un borrador y enumera campos que no puedas trasladar fielmente; si un tipo de agente carece de contraparte válida, omite esa conversión y explica por qué.
 - Los `.yaml` de `skills/*/agents/` son metadatos de presentación de Codex, no definiciones de agentes; no los reflejes en `agents/`.
 
