@@ -1,7 +1,7 @@
 ---
 description: Crea o modifica un commit seguro con Conventional Commits
 agent: build
-------------
+---
 
 Crea el commit solicitado usando `$ARGUMENTS`.
 
