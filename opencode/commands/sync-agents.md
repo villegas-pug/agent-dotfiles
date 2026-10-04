@@ -1,5 +1,5 @@
 ---
-description: Compara y alinea skills y agentes de OpenCode, Codex y Claude Code en agent-dotfiles. Solicita el modo si se omite; apply confirma cada cambio.
+description: Compara y alinea skills, agentes y comandos de OpenCode, Codex y Claude Code en agent-dotfiles. Solicita el modo si se omite; apply confirma cada cambio.
 ---
 
 Carga la skill `sync-agents` y delega íntegramente en ella el análisis, las decisiones y la aplicación.

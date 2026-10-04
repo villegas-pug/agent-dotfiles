@@ -14,6 +14,8 @@ opencode/themes/          Temas de OpenCode
 codex/skills/             Skills de Codex, espejos semánticos de las compatibles
 codex/agents/             Agentes TOML de Codex
 claude/agents/            Agentes Markdown con frontmatter de Claude Code
+claude/commands/          Comandos slash nativos de Claude Code (adaptaciones de OpenCode)
+claude/statusline.js      Status line de dos líneas de Claude Code (Node)
 ```
 
 Claude Code invoca las skills directamente con `/nombre`. Por convención, **toda skill de `opencode/skills/` es compartida por defecto** y se enlaza individualmente a `~/.claude/skills/<nombre>/`; OpenCode también la descubre allí. No se crean copias bajo `claude/skills/`. Las skills que jamás deban presentarse a Claude se listan en `$openCodeOnly` dentro de `install.ps1` y se enlazan solo en `~/.config/opencode/skills/`. Añadir una skill compartida no requiere editar el script: basta crear su directorio y reinstalar.
@@ -40,7 +42,7 @@ La ejecución normal **reemplaza sin respaldos** los archivos y directorios exis
 | `-Uninstall` | Quita únicamente enlaces que aún apuntan a este clon; conserva los archivos reales |
 | `-Uninstall -DryRun` | Muestra los enlaces que se quitarían |
 
-El script solo instala las rutas que mapea. No reemplaza enteros `~/.codex/`, `~/.config/opencode/` ni `~/.claude/`. En particular, conserva `~/.claude/skills/synced/` (descargas gestionadas por Claude), `~/.claude/settings.json`, credenciales y sesiones. Una skill compartida se instala una vez bajo `~/.claude/skills/<nombre>/` y OpenCode también la descubre allí: evita registrar dos skills con el mismo nombre. Las skills exclusivas de OpenCode van bajo `~/.config/opencode/skills/<nombre>/`.
+El script solo instala las rutas que mapea. No reemplaza enteros `~/.codex/`, `~/.config/opencode/` ni `~/.claude/`. En particular, conserva `~/.claude/skills/synced/` (descargas gestionadas por Claude), credenciales y sesiones. Una skill compartida se instala una vez bajo `~/.claude/skills/<nombre>/` y OpenCode también la descubre allí: evita registrar dos skills con el mismo nombre. Las skills exclusivas de OpenCode van bajo `~/.config/opencode/skills/<nombre>/`.
 
 ### Rutas de reglas y agentes
 
@@ -52,13 +54,34 @@ El script solo instala las rutas que mapea. No reemplaza enteros `~/.codex/`, `~
 | `codex/agents/`, `codex/skills/` | `~/.codex/agents/`, `~/.codex/skills/` |
 | `opencode/agents/`, `opencode/commands/`, `opencode/themes/` | `~/.config/opencode/agents/`, `commands/`, `themes/` |
 | `claude/agents/` | `~/.claude/agents/` |
+| `claude/commands/` | `~/.claude/commands/` |
+| `claude/statusline.js` | `~/.claude/statusline.js` |
+| `claude/settings.json`, `opencode/opencode.jsonc`, `opencode/dcp.jsonc` | Ver «Archivos de configuración» |
+
+### Archivos de configuración
+
+Criterio: un archivo de configuración se versiona **solo si no contiene datos de la máquina** (rutas absolutas, usuario, secretos, dependencias de herramientas locales).
+
+| Fuente en el clon | Destino | Notas |
+|---|---|---|
+| `claude/settings.json` | `~/.claude/settings.json` | Incluye la `statusLine`; requiere `node` y `git` en el PATH de Git Bash |
+| `opencode/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | Las claves van por `{env:...}`; el bloque comentado usa `<USERPROFILE>` |
+| `opencode/dcp.jsonc` | `~/.config/opencode/dcp.jsonc` | Solo `$schema` |
+
+No se versionan: `~/.config/opencode/tui.jsonc` (referencia el plugin `herdr-tui-session.js`, generado por herdr; en un PC sin herdr rompería la TUI), `plugins/`, `node_modules`, `~/.codex/config.toml` y `hooks.json` (rutas absolutas), credenciales e historial.
+
+Estos tres enlaces apuntan al clon: **editar el archivo de destino edita el repo**, y los cambios aparecen en `git diff`. Claude Code reescribe `settings.json` (por ejemplo con `/effort`); si el enlace dejara de serlo, `install.ps1 -Doctor` lo avisa. Antes de commitear, revisa que no se hayan acumulado permisos con rutas absolutas ni claves de plugins locales. `-Uninstall` sustituye estos enlaces por una **copia** del contenido, para no dejar a la herramienta sin configuración.
+
+### Comandos de Claude Code
+
+`/commit` y `/playwright-headed` son comandos sin skill equivalente, por lo que tienen un par nativo en `claude/commands/` además del de `opencode/commands/`. Los dos pares pueden divergir: `sync-agents` detecta la divergencia y propone la conversión (con confirmación por elemento), pero no es automática ni se ejecuta sola. Para un comando nuevo con lógica propia, ejecuta `/sync-agents apply`. Diferencias del par de Claude: `argument-hint`, `allowed-tools` y `disable-model-invocation` (solo `/commit`), sin `agent: build`, y sin las inyecciones de `log` y `upstream` (se consultan bajo demanda). El resto de comandos de OpenCode son envoltorios de skills que Claude ya expone con `/nombre`.
 
 Cuando se migra una instalación anterior, el script sustituye el antiguo enlace del directorio completo de skills de OpenCode por enlaces individuales. Los enlaces usan rutas relativas **calculadas desde la ubicación de este clon**; si luego mueves el clon, vuelve a instalar desde la nueva ubicación. Cuando un `git pull` solo cambia archivos dentro de directorios enlazados, no hace falta reinstalar. Cuando cambia un mapeo o se rompe un enlace, vuelve a usar `-DryRun` e instala.
 
 ## Dos operaciones diferentes
 
 - **`install.ps1` / `/dotfiles`**: enlaza las rutas locales de los tres arneses al clon. En OpenCode: `/dotfiles dry`, `/dotfiles sync`, `/dotfiles doctor` o `/dotfiles uninstall`; Codex usa la skill `$dotfiles` y Claude Code `/dotfiles`. Las acciones de sustitución solicitadas al agente requieren confirmación humana.
-- **`sync-agents`**: compara y alinea **archivos dentro del clon**, sin tocar enlaces. Por defecto solo informa; `apply` pide dirección y confirmación por elemento. Skills: OpenCode ↔ Codex; Claude comparte la versión compatible de OpenCode. Agentes: OpenCode `.md` ↔ Codex `.toml` ↔ Claude `.md`, con adaptación al formato nativo y revisión de campos sin equivalencia. Solo existe un `AGENTS.md` en la raíz, por lo que no se sincroniza por pares.
+- **`sync-agents`**: compara y alinea **archivos dentro del clon**, sin tocar enlaces. Por defecto solo informa; `apply` pide dirección y confirmación por elemento. Skills: OpenCode ↔ Codex; Claude comparte la versión compatible de OpenCode. Agentes: OpenCode `.md` ↔ Codex `.toml` ↔ Claude `.md`, con adaptación al formato nativo y revisión de campos sin equivalencia. Comandos: OpenCode ↔ Claude (`opencode/commands/` ↔ `claude/commands/`); los envoltorios de skill no generan par y Codex no tiene equivalente. Solo existe un `AGENTS.md` en la raíz, por lo que no se sincroniza por pares.
 
 OpenCode: `/sync-agents dry-run` o `/sync-agents apply`. Codex: invoca `$sync-agents` e indica `dry-run` o `apply`. Claude Code: `/sync-agents` e indica el modo. La sincronización local del clon no crea commits ni publica cambios en el remoto.
 

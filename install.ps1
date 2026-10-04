@@ -32,7 +32,14 @@ $targets = @(
     @{ Source = 'opencode/agents'; Target = (Join-Path $HOME '.config/opencode/agents') },
     @{ Source = 'opencode/commands'; Target = (Join-Path $HOME '.config/opencode/commands') },
     @{ Source = 'opencode/themes'; Target = (Join-Path $HOME '.config/opencode/themes') },
-    @{ Source = 'claude/agents'; Target = (Join-Path $HOME '.claude/agents') }
+    @{ Source = 'claude/agents'; Target = (Join-Path $HOME '.claude/agents') },
+    @{ Source = 'claude/commands'; Target = (Join-Path $HOME '.claude/commands') },
+    @{ Source = 'claude/statusline.js'; Target = (Join-Path $HOME '.claude/statusline.js') },
+    # Configuración sin datos de la máquina. Al desinstalar se materializa como
+    # copia para no dejar al arnés sin configuración.
+    @{ Source = 'claude/settings.json'; Target = (Join-Path $HOME '.claude/settings.json'); Materialize = $true },
+    @{ Source = 'opencode/opencode.jsonc'; Target = (Join-Path $HOME '.config/opencode/opencode.jsonc'); Materialize = $true },
+    @{ Source = 'opencode/dcp.jsonc'; Target = (Join-Path $HOME '.config/opencode/dcp.jsonc'); Materialize = $true }
 )
 
 # Convención: toda skill de opencode/skills es compartida por defecto y se
@@ -144,6 +151,13 @@ foreach ($entry in $targets) {
 
     if ($Uninstall) {
         if ($state -ne 'linked') { "skip $target ($state)"; continue }
+        if ($entry.Materialize) {
+            if ($DryRun) { "would-materialize $target (copia del contenido en lugar del enlace)"; continue }
+            Remove-Item -LiteralPath $target -Force
+            Copy-Item -LiteralPath $source -Destination $target
+            "materialized $target"
+            continue
+        }
         if ($DryRun) { "would-unlink $target"; continue }
         Remove-Item -LiteralPath $target -Force
         "unlinked $target"

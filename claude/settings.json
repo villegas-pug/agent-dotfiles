@@ -1,0 +1,14 @@
+{
+  "model": "sonnet",
+  "statusLine": {
+    "type": "command",
+    "command": "node \"$HOME/.claude/statusline.js\""
+  },
+  "modelSettings": {
+    "claude-sonnet-5-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "tui": "fullscreen",
+  "theme": "dark-daltonized"
+}

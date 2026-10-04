@@ -1,6 +1,6 @@
 ---
 name: sync-agents
-description: Compara y alinea skills y agentes entre OpenCode, Codex y Claude Code dentro del clon de agent-dotfiles. Si falta el modo, lo solicita mediante un selector; apply pide decisiones y confirmación por elemento.
+description: Compara y alinea skills, agentes y comandos entre OpenCode, Codex y Claude Code dentro del clon de agent-dotfiles. Si falta el modo, lo solicita mediante un selector; apply pide decisiones y confirmación por elemento.
 ---
 
 # Sync Agents
@@ -19,7 +19,7 @@ Modos: `dry-run` (solo lectura) y `apply`. Respeta `dry-run` o `apply` si el usu
 
 ## Descubrimiento e inspección
 
-1. Localiza `opencode/skills/`, `codex/skills/`, `opencode/agents/`, `codex/agents/` y `claude/agents/` bajo el clon. Ignora `.system/`, archivos de estado y metadatos `skills/*/agents/openai.yaml`.
+1. Localiza `opencode/skills/`, `codex/skills/`, `opencode/agents/`, `codex/agents/`, `claude/agents/`, `opencode/commands/` y `claude/commands/` bajo el clon. Ignora `.system/`, archivos de estado y metadatos `skills/*/agents/openai.yaml`.
 2. Para inspección en Windows usa PowerShell 7+ o herramientas nativas de lectura; por ejemplo `Get-FileHash -Algorithm SHA256 -LiteralPath <archivo>` para archivos comparables, y `git diff --no-index -- <origen> <destino>` para ver texto (su código 1 significa «diferencias»). Cita rutas y no uses `diff -u`, `/c/...`, `/dev/null` ni rutas fijas.
 3. Agrupa hallazgos en iguales, faltantes, distintos e incompatibles. Si un elemento falta, presenta su propuesta de creación adaptada; nunca la apliques automáticamente.
 
@@ -45,11 +45,33 @@ Empareja agentes por identidad declarada (`name`) y función, no por extensión.
 - Convierte instrucciones, descripción y controles de forma semántica al formato nativo del destino. No copies `.toml` como `.md` ni supongas equivalencia entre modelos, herramientas, modos o permisos. Muestra un borrador y enumera campos que no puedas trasladar fielmente; si un tipo de agente carece de contraparte válida, omite esa conversión y explica por qué.
 - Los `.yaml` de `skills/*/agents/` son metadatos de presentación de Codex, no definiciones de agentes; no los reflejes en `agents/`.
 
-## Instrucciones globales y comandos
+## Comandos
+
+Empareja por nombre de archivo: `opencode/commands/<n>.md` ↔ `claude/commands/<n>.md`. No uses listas de nombres: todo comando presente en cualquiera de los dos directorios entra en el análisis.
+
+Clasifica cada comando de OpenCode:
+
+- **Envoltorio de skill**: el cuerpo solo ordena usar una skill que existe en `opencode/skills/`. No generes par: Claude Code ya la expone como `/<skill>`. Reporta la equivalencia de nombre cuando difiera (por ejemplo `push-cloud` → `git-push-cloud`) y **no** sustituyas la skill por documentación derivada del comando.
+- **Comando con lógica propia**: genera o compara el par en `claude/commands/`.
+- **Codex**: no tiene comandos personalizados equivalentes. Reporta «no soportado» y no crees nada.
+
+Si la clasificación no es clara, preséntala como duda y deja decidir al usuario.
+
+Conversión **OpenCode → Claude** (borrador y confirmación por elemento):
+
+- Cierra el frontmatter con `---` (corrige cierres malformados) y quita `agent`, `model` y `subtask`.
+- Añade `argument-hint` si el cuerpo usa `$ARGUMENTS`.
+- Deriva `allowed-tools` de las inyecciones `` !`cmd` ``, con un `Bash(<bin> <subcomando>:*)` por comando distinto. No concedas permisos fuera de los comandos detectados. Si una inyección usa redirecciones, tuberías o `|| true`, no es cubrible: muévela a una instrucción bajo demanda y avísalo.
+- Propón `disable-model-invocation: true` cuando el comando tenga efectos secundarios (commit, push, borrado); lo decide el usuario.
+
+Conversión **Claude → OpenCode**: quita `argument-hint`, `allowed-tools` y `disable-model-invocation`, informa qué campos se pierden y añade `agent` solo si el usuario lo pide.
+
+Divergencias: si existe el par, compara el cuerpo ignorando las claves de frontmatter propias de cada arnés (no cuentan como diferencia). Si difiere, ofrece por selector **OpenCode → Claude**, **Claude → OpenCode** u **Omitir**; nunca sobrescribas sin confirmar.
+
+## Instrucciones globales
 
 - Solo existe `AGENTS.md` en la raíz del clon. OpenCode y Codex lo reciben como `AGENTS.md`, Claude Code como `CLAUDE.md` mediante `install.ps1`. No lo compares como par ni generes copias en cada directorio. La auditoría de enlaces corresponde a `install.ps1 -Doctor`.
-- Los comandos de OpenCode son entradas propias del arnés. Si `opencode/commands/<nombre>.md` apunta a una skill existente en Codex, **no** la sustituyas por documentación derivada del comando. Claude Code expone las skills con `/nombre` sin comando duplicado. Reporta los comandos sin equivalente solo como información.
 
 ## Resultado
 
-En `dry-run`, muestra por nombre las diferencias de skills, agentes, incompatibilidades y asimetrías deliberadas, sin escribir nada. En `apply`, incluye las decisiones y confirmaciones de cada par y resume exactamente qué archivos cambiaste. No ejecutes `install.ps1` desde esta skill.
+En `dry-run`, muestra por nombre las diferencias de skills, agentes y comandos (pares iguales, faltantes, distintos, envoltorios de skill y no soportados), incompatibilidades y asimetrías deliberadas, sin escribir nada. En `apply`, incluye las decisiones y confirmaciones de cada par y resume exactamente qué archivos cambiaste. No ejecutes `install.ps1` desde esta skill.
