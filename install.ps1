@@ -39,7 +39,9 @@ $targets = @(
     # copia para no dejar al arnés sin configuración.
     @{ Source = 'claude/settings.json'; Target = (Join-Path $HOME '.claude/settings.json'); Materialize = $true },
     @{ Source = 'opencode/opencode.jsonc'; Target = (Join-Path $HOME '.config/opencode/opencode.jsonc'); Materialize = $true },
-    @{ Source = 'opencode/dcp.jsonc'; Target = (Join-Path $HOME '.config/opencode/dcp.jsonc'); Materialize = $true }
+    @{ Source = 'opencode/dcp.jsonc'; Target = (Join-Path $HOME '.config/opencode/dcp.jsonc'); Materialize = $true },
+    # Solo el archivo: el directorio de herdr contiene sockets, logs y sesiones.
+    @{ Source = 'herdr/config.toml'; Target = (Join-Path $env:APPDATA 'herdr/config.toml'); Materialize = $true }
 )
 
 # Convención: toda skill de opencode/skills es compartida por defecto y se

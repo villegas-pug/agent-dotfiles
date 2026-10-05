@@ -16,6 +16,7 @@ codex/agents/             Agentes TOML de Codex
 claude/agents/            Agentes Markdown con frontmatter de Claude Code
 claude/commands/          Comandos slash nativos de Claude Code (adaptaciones de OpenCode)
 claude/statusline.js      Status line de dos líneas de Claude Code (Node)
+herdr/config.toml         Configuración portable del multiplexor herdr
 ```
 
 Claude Code invoca las skills directamente con `/nombre`. Por convención, **toda skill de `opencode/skills/` es compartida por defecto** y se enlaza individualmente a `~/.claude/skills/<nombre>/`; OpenCode también la descubre allí. No se crean copias bajo `claude/skills/`. Las skills que jamás deban presentarse a Claude se listan en `$openCodeOnly` dentro de `install.ps1` y se enlazan solo en `~/.config/opencode/skills/`. Añadir una skill compartida no requiere editar el script: basta crear su directorio y reinstalar.
@@ -67,10 +68,26 @@ Criterio: un archivo de configuración se versiona **solo si no contiene datos d
 | `claude/settings.json` | `~/.claude/settings.json` | Incluye la `statusLine`; requiere `node` y `git` en el PATH de Git Bash |
 | `opencode/opencode.jsonc` | `~/.config/opencode/opencode.jsonc` | Las claves van por `{env:...}`; el bloque comentado usa `<USERPROFILE>` |
 | `opencode/dcp.jsonc` | `~/.config/opencode/dcp.jsonc` | Solo `$schema` |
+| `herdr/config.toml` | `%APPDATA%\herdr\config.toml` | Ver «herdr» |
 
 No se versionan: `~/.config/opencode/tui.jsonc` (referencia el plugin `herdr-tui-session.js`, generado por herdr; en un PC sin herdr rompería la TUI), `plugins/`, `node_modules`, `~/.codex/config.toml` y `hooks.json` (rutas absolutas), credenciales e historial.
 
-Estos tres enlaces apuntan al clon: **editar el archivo de destino edita el repo**, y los cambios aparecen en `git diff`. Claude Code reescribe `settings.json` (por ejemplo con `/effort`); si el enlace dejara de serlo, `install.ps1 -Doctor` lo avisa. Antes de commitear, revisa que no se hayan acumulado permisos con rutas absolutas ni claves de plugins locales. `-Uninstall` sustituye estos enlaces por una **copia** del contenido, para no dejar a la herramienta sin configuración.
+Estos enlaces apuntan al clon: **editar el archivo de destino edita el repo**, y los cambios aparecen en `git diff`. Claude Code reescribe `settings.json` (por ejemplo con `/effort`); si el enlace dejara de serlo, `install.ps1 -Doctor` lo avisa. Antes de commitear, revisa que no se hayan acumulado permisos con rutas absolutas ni claves de plugins locales. `-Uninstall` sustituye estos enlaces por una **copia** del contenido, para no dejar a la herramienta sin configuración.
+
+### herdr
+
+Solo se versiona `config.toml` (UI, sidebar, tema, notificaciones, `terminal.new_cwd`). Se enlaza **el archivo**, nunca el directorio `%APPDATA%\herdr\`, que contiene sockets, logs, `session.json` y `session-snapshots/`. Tampoco se versionan `%LOCALAPPDATA%\herdr\` (caché de detección de agentes), `~/.herdr/` (binario y worktrees) ni las máquinas SSH guardadas.
+
+Los scripts de integración (`~/.claude/hooks/herdr-agent-state.ps1`, `~/.codex/herdr-agent-state.ps1`, `~/.config/opencode/plugins/herdr-agent-state.js`) los administra herdr y se regeneran por máquina. `claude/settings.json` sí registra el hook `SessionStart`, con ruta `$HOME/...` para ser portable; el script termina sin efecto fuera de un pane de herdr.
+
+En una PC nueva, tras `install.ps1`:
+
+```powershell
+herdr integration install claude   # y codex / opencode según uso
+herdr server reload-config
+```
+
+`herdr integration install claude` reescribe el hook de `settings.json` con la ruta absoluta del usuario: revisa `git diff` y restaura la forma `$HOME/.claude/hooks/herdr-agent-state.ps1` antes de commitear. En Linux, macOS o WSL herdr lee `~/.config/herdr/config.toml`; el instalador solo cubre Windows.
 
 ### Comandos de Claude Code
 

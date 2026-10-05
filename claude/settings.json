@@ -1,14 +1,35 @@
 {
   "model": "sonnet",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$HOME/.claude/hooks/herdr-agent-state.ps1\" session",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "node \"$HOME/.claude/statusline.js\""
   },
   "modelSettings": {
     "claude-sonnet-5-5": {
-      "effortLevel": "low"
+      "effortLevel": "high"
+    },
+    "claude-haiku-4-5": {
+      "effortLevel": "medium"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
     }
   },
   "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized"
 }

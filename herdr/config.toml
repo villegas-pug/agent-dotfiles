@@ -1,0 +1,171 @@
+# ============================================================
+# HERDR
+# Configuración portable versionada en agent-dotfiles.
+# No añadir rutas absolutas ni datos de la máquina.
+# ============================================================
+
+onboarding = false
+
+
+# ============================================================
+# UI
+# ============================================================
+
+[ui]
+
+# ------------------------------------------------------------
+# Sidebar
+# ------------------------------------------------------------
+
+# Ancho cómodo para proyectos, tabs, agentes y estados.
+sidebar_width = 34
+sidebar_min_width = 26
+sidebar_max_width = 44
+
+sidebar_start_collapsed = false
+
+# Distinguir estados también por forma.
+status_indicators = "symbols"
+
+# Mantener los agentes agrupados por workspace / space.
+agent_panel_sort = "spaces"
+
+
+# ------------------------------------------------------------
+# Panes
+# ------------------------------------------------------------
+
+# Solo mostrar bordes cuando existen splits.
+pane_borders = "auto"
+
+# Mantener borde externo del área de panes.
+pane_outer_borders = true
+
+# Compartir divisores entre panes para un aspecto más limpio.
+pane_gaps = false
+
+# Recuperar la columna usada por scrollbar.
+pane_scrollbars = false
+
+# Mostrar nombre del agente en el borde cuando hay splits.
+show_agent_labels_on_pane_borders = true
+
+
+# ------------------------------------------------------------
+# Tabs
+# ------------------------------------------------------------
+
+# Si solo existe un tab, ocultar la barra.
+hide_tab_bar_when_single_tab = true
+
+# Mantener navegación principal arriba.
+tab_bar_position = "top"
+
+# Indicadores discretos a la derecha:
+# ZOOM aparece solamente cuando corresponde.
+# También mostramos la hora local del servidor Herdr.
+tab_bar_right = [{ type = "zoom" }, { type = "datetime", format = "%H:%M" }]
+
+tab_bar_right_separator = " · "
+
+
+# ------------------------------------------------------------
+# Título de Windows Terminal
+# ------------------------------------------------------------
+
+# Ejemplo:
+# database-oracle · 3
+window_title = "{workspace} · {tab}"
+
+
+# ============================================================
+# SPACES
+#
+# Jerarquía visual:
+#
+# ◉ database-oracle
+#     main
+#
+# Workspace -> Dracula Foreground
+# Branch    -> Dracula Purple
+# Git       -> colores semánticos nativos de Herdr
+# ============================================================
+
+[ui.sidebar.spaces]
+
+# Separación entre proyectos.
+row_gap = 1
+
+rows = [
+    ["state_icon", { token = "workspace", fg = "#F8F8F2", bold = true, dim = false }],
+    [{ token = "branch", fg = "#BD93F9", bold = false, dim = false }, { token = "git_status", bold = false, dim = false }]
+]
+
+
+# ============================================================
+# AGENTS
+#
+# Jerarquía visual:
+#
+# ◉ database-oracle
+#     1 · opencode · idle
+#
+#
+# Colores estructurales:
+#
+# Workspace -> #F8F8F2  Dracula Foreground
+# Tab       -> #F1FA8C  Dracula Yellow
+# Agent     -> #8BE9FD  Dracula Cyan
+#
+#
+# Estados:
+#
+# working   -> #50FA7B  Dracula Green
+# idle      -> #6272A4  Dracula Comment
+# blocked   -> #FF5555  Dracula Red
+# done      -> #8BE9FD  Dracula Cyan
+# unknown   -> #6272A4  Dracula Comment + dim
+# ============================================================
+
+[ui.sidebar.agents]
+
+# Compacto porque normalmente habrá varios agentes.
+row_gap = 0
+
+rows = [
+    ["state_icon", { token = "workspace", fg = "#F8F8F2", bold = true, dim = false }],
+    [{ token = "tab", fg = "#F1FA8C", bold = true, dim = false }, { token = "agent", fg = "#8BE9FD", bold = false, dim = false }, { token = "state_text", bold = true, dim = false, rules = [{ equals = "working", fg = "#50FA7B" }, { equals = "idle", fg = "#6272A4", bold = false }, { equals = "blocked", fg = "#FF5555" }, { equals = "done", fg = "#8BE9FD" }, { equals = "unknown", fg = "#6272A4", bold = false, dim = true }] }]
+]
+
+
+# ============================================================
+# THEME
+# ============================================================
+
+[theme]
+
+name = "dracula"
+auto_switch = false
+
+
+# ============================================================
+# NOTIFICATIONS
+# ============================================================
+
+[ui.toast]
+
+# Notificaciones nativas del sistema operativo.
+delivery = "system"
+
+# Evita notificar estados demasiado transitorios.
+delay_seconds = 1
+
+
+# ============================================================
+# TERMINAL
+# ============================================================
+
+[terminal]
+
+# Nuevos panes / tabs continúan desde el directorio actual.
+new_cwd = "follow"

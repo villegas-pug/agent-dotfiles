@@ -58,6 +58,13 @@ __pycache__/
 .codex/
 .codex-*
 
+# herdr runtime (solo se versiona herdr/config.toml)
+herdr/*.sock
+herdr/*.log
+herdr/session*.json
+herdr/session-snapshots/
+herdr/.plugins.lock
+
 # OpenCode local cache/runtime
 .opencode-cache/
 .opencode-runtime/
