@@ -1,18 +1,12 @@
 ---
-description: Genera propuestas de nombre en inglés formato `{{feature}}-{{action}}` para la sesión actual de opencode a partir de un contexto en español. Requiere un contexto como argumento obligatorio.
+description: Propone nombres en inglés `{{feature}}-{{action}}` para la sesión actual de OpenCode, deja elegir uno y lo aplica al título. El contexto sale de la conversación; el argumento es opcional.
 agent: build
 ---
 
-Genera entre 3 y 5 propuestas de nombre para la sesión actual de opencode siguiendo estrictamente el formato `{{feature}}-{{action}}` en inglés, a partir del contexto en español: $ARGUMENTS
+Carga la skill `session-rename`, propón nombres para la sesión actual y aplica el que elija el usuario. Contexto adicional del usuario (opcional): $ARGUMENTS
 
 ## Reglas
 
-1. **Sin argumentos** o con argumentos vacíos: responde **únicamente** con el mensaje "⚠️ Debes proporcionar un resumen en español de lo que se hizo en esta sesión (2-3 líneas)."
-
-2. **Con contexto provisto**:
-   1. Carga el skill `session-rename` y aplica la heurística completa (cuándo disparar, proceso, formato, ejemplos, anti-ejemplos).
-   2. Genera las propuestas con la recomendada marcada.
-   3. Devuelve el output en el formato del skill.
-   4. Termina recordando que el skill solo propone: el usuario debe aplicar el título manualmente en el TUI de opencode.
-
-3. **No ejecutes** ningún comando shell. Este comando es estrictamente delegativo: produce texto, no muta estado.
+1. **Delega en la skill**: su jerarquía de fuentes, presupuesto de lectura, formato y el paso de elegir y aplicar son la única referencia; no dupliques su heurística aquí.
+2. **No ejecutes** ningún comando shell salvo lo que la skill indique como fuente de contexto.
+3. **Efectos permitidos**: solo la herramienta `session_rename`, y únicamente con el nombre que el usuario eligió.

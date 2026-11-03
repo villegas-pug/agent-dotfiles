@@ -1,11 +1,11 @@
 ---
-name: dotfiles
-description: Instala, audita o revierte los enlaces de dotfiles para OpenCode, Codex y Claude Code mediante install.ps1. Usar cuando el usuario pida sincronizar sus dotfiles locales, ver cambios, auditar enlaces o desinstalarlos.
+name: link-dotfiles
+description: Instala, audita o revierte los enlaces de dotfiles para OpenCode, Codex y Claude Code mediante install.ps1. Usar cuando el usuario pida enlazar sus dotfiles locales, ver cambios, auditar enlaces o desinstalarlos.
 ---
 
-# Dotfiles
+# Link Dotfiles
 
-Esta skill gestiona **enlaces de la máquina al clon**, no las diferencias entre arneses dentro del clon (para eso usa `sync-agents`). Localiza `install.ps1` en el clon donde reside esta skill; no asumas `~/agent-dotfiles`, una unidad concreta ni que el directorio actual sea el clon. Ejecuta mediante PowerShell 7+: `pwsh -NoProfile -File <ruta-del-clon>/install.ps1 <opción>`.
+Esta skill gestiona **enlaces de la máquina al clon**, no las diferencias entre arneses dentro del clon (para eso usa `align-dotfiles-harnesses`). Localiza `install.ps1` en el clon donde reside esta skill; no asumas `~/agent-dotfiles`, una unidad concreta ni que el directorio actual sea el clon. Ejecuta mediante PowerShell 7+: `pwsh -NoProfile -File <ruta-del-clon>/install.ps1 <opción>`.
 
 ## Modos
 
@@ -27,4 +27,4 @@ Las rutas mapeadas provienen de la tabla del script, no de una suposición sobre
 4. Antes de `uninstall`, muestra los enlaces propios detectados y pide confirmación inequívoca. Nunca borres archivos reales durante la desinstalación.
 5. Si se movió el clon, vuelve a instalar los enlaces desde su nueva ubicación; el script obtiene el origen desde su propio directorio.
 
-No hagas `git commit`, `push` ni ejecutes `sync-agents` como efecto colateral. Un `git pull` que solo cambió contenido dentro de los directorios enlazados no exige reinstalar; un mapeo nuevo o un enlace roto sí.
+No hagas `git commit`, `push` ni ejecutes `align-dotfiles-harnesses` como efecto colateral. Un `git pull` que solo cambió contenido dentro de los directorios enlazados no exige reinstalar; un mapeo nuevo o un enlace roto sí.

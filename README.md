@@ -10,6 +10,7 @@ install.ps1               Instalación y auditoría de enlaces (PowerShell 7+)
 opencode/commands/        Comandos slash propios de OpenCode
 opencode/skills/          Skills propias y compartidas con Claude Code
 opencode/agents/          Agentes Markdown con frontmatter de OpenCode
+opencode/plugins/         Plugins de OpenCode (session-rename.ts: tool session_rename)
 opencode/themes/          Temas de OpenCode
 codex/skills/             Skills de Codex, espejos semánticos de las compatibles
 codex/agents/             Agentes TOML de Codex
@@ -54,6 +55,7 @@ El script solo instala las rutas que mapea. No reemplaza enteros `~/.codex/`, `~
 | `AGENTS.md` | `~/.claude/CLAUDE.md` |
 | `codex/agents/`, `codex/skills/` | `~/.codex/agents/`, `~/.codex/skills/` |
 | `opencode/agents/`, `opencode/commands/`, `opencode/themes/` | `~/.config/opencode/agents/`, `commands/`, `themes/` |
+| `opencode/plugins/session-rename.ts` | `~/.config/opencode/plugins/session-rename.ts` (solo este archivo) |
 | `claude/agents/` | `~/.claude/agents/` |
 | `claude/commands/` | `~/.claude/commands/` |
 | `claude/statusline.js` | `~/.claude/statusline.js` |
@@ -70,7 +72,7 @@ Criterio: un archivo de configuración se versiona **solo si no contiene datos d
 | `opencode/dcp.jsonc` | `~/.config/opencode/dcp.jsonc` | Solo `$schema` |
 | `herdr/config.toml` | `%APPDATA%\herdr\config.toml` | Ver «herdr» |
 
-No se versionan: `~/.config/opencode/tui.jsonc` (referencia el plugin `herdr-tui-session.js`, generado por herdr; en un PC sin herdr rompería la TUI), `plugins/`, `node_modules`, `~/.codex/config.toml` y `hooks.json` (rutas absolutas), credenciales e historial.
+No se versionan: `~/.config/opencode/tui.jsonc` (referencia el plugin `herdr-tui-session.js`, generado por herdr; en un PC sin herdr rompería la TUI), `plugins/`, `node_modules`, `~/.codex/config.toml` y `hooks.json` (rutas absolutas), credenciales e historial. De `plugins/` solo se versiona `session-rename.ts`.
 
 Estos enlaces apuntan al clon: **editar el archivo de destino edita el repo**, y los cambios aparecen en `git diff`. Claude Code reescribe `settings.json` (por ejemplo con `/effort`); si el enlace dejara de serlo, `install.ps1 -Doctor` lo avisa. Antes de commitear, revisa que no se hayan acumulado permisos con rutas absolutas ni claves de plugins locales. `-Uninstall` sustituye estos enlaces por una **copia** del contenido, para no dejar a la herramienta sin configuración.
 
@@ -91,26 +93,26 @@ herdr server reload-config
 
 ### Comandos de Claude Code
 
-`/commit` y `/playwright-headed` son comandos sin skill equivalente, por lo que tienen un par nativo en `claude/commands/` además del de `opencode/commands/`. Los dos pares pueden divergir: `sync-agents` detecta la divergencia y propone la conversión (con confirmación por elemento), pero no es automática ni se ejecuta sola. Para un comando nuevo con lógica propia, ejecuta `/sync-agents apply`. Diferencias del par de Claude: `argument-hint`, `allowed-tools` y `disable-model-invocation` (solo `/commit`), sin `agent: build`, y sin las inyecciones de `log` y `upstream` (se consultan bajo demanda). El resto de comandos de OpenCode son envoltorios de skills que Claude ya expone con `/nombre`.
+`/commit` y `/playwright-headed` son comandos sin skill equivalente, por lo que tienen un par nativo en `claude/commands/` además del de `opencode/commands/`. Los dos pares pueden divergir: `align-dotfiles-harnesses` detecta la divergencia y propone la conversión (con confirmación por elemento), pero no es automática ni se ejecuta sola. Para un comando nuevo con lógica propia, ejecuta `/align-dotfiles-harnesses apply`. Diferencias del par de Claude: `argument-hint`, `allowed-tools` y `disable-model-invocation` (solo `/commit`), sin `agent: build`, y sin las inyecciones de `log` y `upstream` (se consultan bajo demanda). El resto de comandos de OpenCode son envoltorios de skills que Claude ya expone con `/nombre`.
 
 Cuando se migra una instalación anterior, el script sustituye el antiguo enlace del directorio completo de skills de OpenCode por enlaces individuales. Los enlaces usan rutas relativas **calculadas desde la ubicación de este clon**; si luego mueves el clon, vuelve a instalar desde la nueva ubicación. Cuando un `git pull` solo cambia archivos dentro de directorios enlazados, no hace falta reinstalar. Cuando cambia un mapeo o se rompe un enlace, vuelve a usar `-DryRun` e instala.
 
 ## Dos operaciones diferentes
 
-- **`install.ps1` / `/dotfiles`**: enlaza las rutas locales de los tres arneses al clon. En OpenCode: `/dotfiles dry`, `/dotfiles sync`, `/dotfiles doctor` o `/dotfiles uninstall`; Codex usa la skill `$dotfiles` y Claude Code `/dotfiles`. Las acciones de sustitución solicitadas al agente requieren confirmación humana.
-- **`sync-agents`**: compara y alinea **archivos dentro del clon**, sin tocar enlaces. Por defecto solo informa; `apply` pide dirección y confirmación por elemento. Skills: OpenCode ↔ Codex; Claude comparte la versión compatible de OpenCode. Agentes: OpenCode `.md` ↔ Codex `.toml` ↔ Claude `.md`, con adaptación al formato nativo y revisión de campos sin equivalencia. Comandos: OpenCode ↔ Claude (`opencode/commands/` ↔ `claude/commands/`); los envoltorios de skill no generan par y Codex no tiene equivalente. Solo existe un `AGENTS.md` en la raíz, por lo que no se sincroniza por pares.
+- **`install.ps1` / `/link-dotfiles`**: enlaza las rutas locales de los tres arneses al clon. En OpenCode: `/link-dotfiles dry`, `/link-dotfiles sync`, `/link-dotfiles doctor` o `/link-dotfiles uninstall`; Codex usa la skill `$link-dotfiles` y Claude Code `/link-dotfiles`. Las acciones de sustitución solicitadas al agente requieren confirmación humana.
+- **`align-dotfiles-harnesses`**: compara y alinea **archivos dentro del clon**, sin tocar enlaces. Por defecto solo informa; `apply` pide dirección y confirmación por elemento. Skills: OpenCode ↔ Codex; Claude comparte la versión compatible de OpenCode. Agentes: OpenCode `.md` ↔ Codex `.toml` ↔ Claude `.md`, con adaptación al formato nativo y revisión de campos sin equivalencia. Comandos: OpenCode ↔ Claude (`opencode/commands/` ↔ `claude/commands/`); los envoltorios de skill no generan par y Codex no tiene equivalente. Solo existe un `AGENTS.md` en la raíz, por lo que no se sincroniza por pares.
 
-OpenCode: `/sync-agents dry-run` o `/sync-agents apply`. Codex: invoca `$sync-agents` e indica `dry-run` o `apply`. Claude Code: `/sync-agents` e indica el modo. La sincronización local del clon no crea commits ni publica cambios en el remoto.
+OpenCode: `/align-dotfiles-harnesses dry-run` o `/align-dotfiles-harnesses apply`. Codex: invoca `$align-dotfiles-harnesses` e indica `dry-run` o `apply`. Claude Code: `/align-dotfiles-harnesses` e indica el modo. La sincronización local del clon no crea commits ni publica cambios en el remoto.
 
-## Harness Sync
+## Migrate Harness Artifacts
 
 Migra y sincroniza skills, comandos, agentes, instrucciones y configuración entre OpenCode, Claude Code y Codex **dentro del proyecto desde el que se invoca**. La skill es global; sus efectos son solo locales a ese repositorio: nunca escribe en las rutas globales de los arneses. Detecta los artefactos del proyecto, permite elegir origen y destino, clasifica cada equivalencia (directa | parcial | alternativa funcional | no soportada) y ejecuta un plan con estados (CREATE | UPDATE | UNCHANGED | ADAPT | UNSUPPORTED | CONFLICT) tras confirmación. Los artefactos generados llevan un bloque de provenance en su frontmatter que hace la operación idempotente y trazable en ciclos sucesivos (OpenCode → Claude Code → Codex → OpenCode). No crea backups: el git del proyecto es la red de seguridad.
 
-Invócala con `/harness-sync` en OpenCode y Claude Code, o `$harness-sync` en Codex. Para alinear artefactos **dentro de este clon** sigue correspondiendo `sync-agents`: cada skill cubre un ámbito distinto.
+Invócala con `/migrate-harness-artifacts` en OpenCode y Claude Code, o `$migrate-harness-artifacts` en Codex. Para alinear artefactos **dentro de este clon** sigue correspondiendo `align-dotfiles-harnesses`: cada skill cubre un ámbito distinto.
 
 ## Prompt Augmenter
 
-Invoca `$prompt-augmenter` en Codex, `/prompt-augmenter` en OpenCode o `/prompt-augmenter` en Claude Code. Selecciona uno o varios augmenters de Analysis, Safety y Behavior; proporciona el prompt base si aún falta. La skill leerá **solo las instrucciones de los elegidos**, informará qué aplicará y ejecutará la solicitud preservando su objetivo.
+Invoca `$prompt-augmenter` en Codex, `/prompt-augmenter` en OpenCode o `/prompt-augmenter` en Claude Code. Selecciona uno o varios augmenters de Analysis, Safety, Behavior y UI/UX; proporciona el prompt base si aún falta. La skill leerá **solo las instrucciones de los elegidos**, informará qué aplicará y ejecutará la solicitud preservando su objetivo. En OpenCode y Claude Code, cada lista de opciones termina en **Todos**.
 
 Ejemplo: invocar `/prompt-augmenter` → elegir `impact-analysis`, `regression-safety` y `scope-guard` → escribir «Corrige el cálculo del costo de envío en el carrito» → la skill aplica esos tres criterios mientras corrige el cálculo. En Codex se inicia con `$prompt-augmenter`: el selector permite elegir **Omitir / Todos / Personalizar** por grupo, y **Personalizar** abre preguntas **Agregar / Omitir** por augmenter.
 
@@ -120,9 +122,9 @@ Las skills `git-push-cloud` y `kill-session-processes` también tienen entradas 
 
 ## Límites
 
-- El instalador no ejecuta `sync-agents`, builds ni pruebas.
+- El instalador no ejecuta `align-dotfiles-harnesses`, builds ni pruebas.
 - Claude Code **CLI local** carga `~/.claude/skills/`; las sesiones cloud de Claude no cargan las skills personales de esa carpeta.
-- Los agentes con campos o capacidades sin equivalente entre arneses requieren una decisión explícita; `sync-agents` no inventa equivalencias de permisos o modelos.
+- Los agentes con campos o capacidades sin equivalente entre arneses requieren una decisión explícita; `align-dotfiles-harnesses` no inventa equivalencias de permisos o modelos.
 - Los symlinks requieren Modo Desarrollador en Windows o permisos para crearlos. OpenCode y Codex pueden necesitar reiniciar la sesión para descubrir cambios de configuración; Claude Code permite `/reload-skills` si el directorio de skills se creó después de iniciar la sesión.
 
 Sin licencia definida.

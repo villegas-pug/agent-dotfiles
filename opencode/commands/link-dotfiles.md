@@ -2,7 +2,7 @@
 description: Administra los enlaces del clon dotfiles hacia OpenCode, Codex y Claude Code. Modos: dry, sync, doctor, uninstall y help.
 ---
 
-Carga la skill `dotfiles` y aplica su procedimiento de vista previa y confirmación.
+Carga la skill `link-dotfiles` y aplica su procedimiento de vista previa y confirmación.
 
 Argumentos: $ARGUMENTS
 

@@ -41,7 +41,9 @@ $targets = @(
     @{ Source = 'opencode/opencode.jsonc'; Target = (Join-Path $HOME '.config/opencode/opencode.jsonc'); Materialize = $true },
     @{ Source = 'opencode/dcp.jsonc'; Target = (Join-Path $HOME '.config/opencode/dcp.jsonc'); Materialize = $true },
     # Solo el archivo: el directorio de herdr contiene sockets, logs y sesiones.
-    @{ Source = 'herdr/config.toml'; Target = (Join-Path $env:APPDATA 'herdr/config.toml'); Materialize = $true }
+    @{ Source = 'herdr/config.toml'; Target = (Join-Path $env:APPDATA 'herdr/config.toml'); Materialize = $true },
+    # Solo el archivo: ~/.config/opencode/plugins es de herdr y de la máquina; enlazar el directorio lo borraría.
+    @{ Source = 'opencode/plugins/session-rename.ts'; Target = (Join-Path $HOME '.config/opencode/plugins/session-rename.ts') }
 )
 
 # Convención: toda skill de opencode/skills es compartida por defecto y se
@@ -55,6 +57,9 @@ $openCodeSkills = Join-Path $repoRoot 'opencode/skills'
 $openCodeSkillsTarget = Join-Path $HOME '.config/opencode/skills'
 $claudeSkillsTarget = Join-Path $HOME '.claude/skills'
 $skillShadowPaths = @()
+
+# Nombres de skills renombradas. Sus enlaces antiguos se retiran solo si son enlaces simbólicos.
+$renamedSkills = @('dotfiles', 'sync-agents', 'harness-sync')
 
 foreach ($skill in Get-ChildItem -LiteralPath $openCodeSkills -Directory) {
     if ($skill.Name -in $openCodeOnly) {
@@ -132,6 +137,16 @@ if (-not $Uninstall -and -not ($legacy -and $legacy.LinkType)) {
             Remove-MappedPath -Target $shadow.Path
         }
     }
+}
+
+# Un nombre antiguo sin destino en el clon deja un enlace roto; se retira aquí.
+foreach ($name in $renamedSkills) {
+    $stale = Join-Path $claudeSkillsTarget $name
+    $item = Get-Item -LiteralPath $stale -Force -ErrorAction SilentlyContinue
+    if (-not $item -or $item.LinkType -ne 'SymbolicLink') { continue }
+    if ($Doctor) { "WARN $stale (skill renombrada; reinstalar para retirar el enlace)" }
+    elseif ($DryRun) { "would-remove $stale (skill renombrada)" }
+    else { Remove-Item -LiteralPath $stale -Force }
 }
 
 foreach ($entry in $targets) {

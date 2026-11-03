@@ -1,13 +1,13 @@
 ---
-name: harness-sync
-description: Migra y sincroniza skills, comandos, agentes, instrucciones y configuración entre OpenCode, Claude Code y Codex dentro del proyecto actual. Usar cuando se pida migrar, sincronizar o adaptar artefactos de un arnés a otro en el repositorio activo. Efectos solo locales al proyecto invocado; para alinear artefactos dentro del clon de agent-dotfiles usar sync-agents.
+name: migrate-harness-artifacts
+description: Migra y sincroniza skills, comandos, agentes, instrucciones y configuración entre OpenCode, Claude Code y Codex dentro del proyecto actual. Usar cuando se pida migrar, sincronizar o adaptar artefactos de un arnés a otro en el repositorio activo. Efectos solo locales al proyecto invocado; para alinear artefactos dentro del clon de agent-dotfiles usar align-dotfiles-harnesses.
 ---
 
-# Harness Sync
+# Migrate Harness Artifacts
 
 ## Alcance e invariantes
 
-Trabaja exclusivamente sobre el repositorio activo desde el que fue invocada. La skill es global; **sus efectos no lo son**: nunca escribe fuera de la raíz de ese repositorio. Prohibido escribir en `~/.claude`, `~/.codex`, `~/.config/opencode` y `~/.agents` (esas rutas solo sirven para instalar esta skill, no para migrar). Si el proyecto invocado es el clon de `agent-dotfiles`, detente y remite a la skill `sync-agents`: esa alinea contenido dentro del clon; esta migra artefactos entre proyectos.
+Trabaja exclusivamente sobre el repositorio activo desde el que fue invocada. La skill es global; **sus efectos no lo son**: nunca escribe fuera de la raíz de ese repositorio. Prohibido escribir en `~/.claude`, `~/.codex`, `~/.config/opencode` y `~/.agents` (esas rutas solo sirven para instalar esta skill, no para migrar). Si el proyecto invocado es el clon de `agent-dotfiles`, detente y remite a la skill `align-dotfiles-harnesses`: esa alinea contenido dentro del clon; esta migra artefactos entre proyectos.
 
 - **No destructiva**: nunca elimina ni modifica los artefactos del harness origen.
 - **Idempotente**: una segunda ejecución sin cambios no escribe nada.

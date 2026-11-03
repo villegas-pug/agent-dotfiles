@@ -29,6 +29,7 @@ Reglas del bloque:
 - `source_sha256` cubre el contenido semántico origen **excluyendo** campos de tiempo; `synced_at` nunca participa en comparaciones.
 - `files` registra los adjuntos copiados con su hash (rutas relativas al directorio del artefacto).
 - Los artefactos fundidos en `AGENTS.md` no llevan bloque: quedan marcados como no trazables y fuera de la re-idempotencia automática.
+- La clave `harness-sync` **se conserva** aunque la skill se llame `migrate-harness-artifacts`: es el identificador de artefactos ya generados. Renombrarla haría que parecieran ediciones manuales (CONFLICT).
 
 ## Máquina de estados
 

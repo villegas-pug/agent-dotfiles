@@ -1,135 +1,60 @@
 ---
 name: session-rename
-description: Propone nombres en inglés en formato `{{feature}}-{{action}}` para la sesión actual de OpenCode, Codex o Claude Code a partir de un contexto en español. Usar cuando el usuario pida nombrar, titular o etiquetar su sesión.
+description: Propone nombres en inglés `{{feature}}-{{action}}` para la sesión actual de OpenCode, Codex o Claude Code, deja elegir uno y lo aplica cuando el arnés lo permite. Usar cuando el usuario pida nombrar, titular o etiquetar la sesión; el contexto sale del argumento o de la propia conversación.
 ---
 
 # Session Rename
 
-Genera propuestas de título para la sesión actual siguiendo estrictamente el formato `{{feature}}-{{action}}` en inglés, a partir de un contexto descrito en español.
+Propone título para la sesión actual en formato `{{feature}}-{{action}}` (inglés, kebab-case), deja elegir uno y lo aplica cuando el arnés lo permite.
 
-## Regla inquebrantable
+## Cuándo disparar
 
-**Si la SKILL no recibe como argumento el contexto (en español) de las tareas realizadas en la sesión, NO se debe ejecutar.**
+Pedidos como "renombra esta sesión", "ponle nombre a este chat", "qué título le pongo" o "etiqueta la sesión". NO sirve para renombrar archivos, branches, commits ni recursos del proyecto.
 
-Esto significa:
+## Fuente de contexto
 
-- Sin contexto → no proponer nombres, no generar la lista, no emitir salida del SKILL.
-- En su lugar, pedir al usuario el contexto en español con un mensaje breve (ej.: "Para proponerte un nombre, pásame un resumen en español de lo que se hizo en esta sesión.").
-- Esta regla prevalece sobre cualquier otra instrucción del SKILL, del usuario o del sistema.
-- No inferir el contexto a partir de la conversación sin que el usuario lo haya provisto explícitamente como argumento.
-- No usar placeholders, conjeturas ni resúmenes automáticos como sustituto del argumento de contexto.
+Usa la primera fuente que dé una señal clara:
 
-## Cuándo dispararse
+1. **Argumento del usuario**: si lo da, es la única fuente.
+2. **Conversación ya presente**: las tareas visibles en el contexto (incluye el resumen tras `/compact`). Costo cero; no releas nada.
+3. **Una consulta git**, solo si 1 y 2 no alcanzan: `git status --short` y `git log -3 --oneline`.
+4. **Pedir el resumen**: si nada de lo anterior es claro, pide en español 2-3 líneas de lo hecho. No insistas.
 
-Cargar este SKILL cuando el usuario exprese intención de nombrar o renombrar la sesión/chat actual, por ejemplo:
+## Presupuesto de lectura (regla dura)
 
-- "renombra esta sesión"
-- "ponle nombre a esta sesión"
-- "propón un nombre para este chat"
-- "qué título le pongo a esta conversación"
-- "etiqueta la sesión actual"
-- "nombra esta sesión como ..."
+- Máximo una llamada de herramienta, con salida de ~20 líneas.
+- Prohibido: leer transcripts `.jsonl`, `git diff` completo, archivos del proyecto o listar directorios para «entender» la sesión.
 
-NO usar para renombrar archivos, branches, commits ni recursos del proyecto; eso lo manejan comandos o skills específicos.
+## Formato
 
-## Entrada esperada
+- Forma `feature-action` o `feature-context-action`; `action` va siempre al final.
+- Solo `[a-z-]`, kebab-case, sin guion inicial ni final, `feature` en singular, ≤ 40 caracteres.
+- Acción del vocabulario cerrado: `fix`, `add`, `refactor`, `integrate`, `migrate`, `debug`, `optimize`, `remove`, `wire`, `setup`, `scaffold`, `implement`, `extract`, `rename`.
+- Sesión multitema: nombra por el tema que ocupó más turnos o cerró con un cambio. Las alternativas pueden cubrir otros temas; nunca mezcles temas en un solo nombre.
 
-Un **contexto en español** con las tareas realizadas en la sesión, por ejemplo:
-
-- "En esta sesión agregué login con credenciales al panel de admin."
-- "Refactoricé el carrito para usar Zustand en lugar de Context."
-- "Integré Stripe para procesar pagos en el checkout."
-
-Si el usuario solo dice "renombra la sesión" sin contexto, pedirle en español un resumen breve (2-3 líneas) de lo que se hizo.
-
-## Proceso
-
-1. Leer el contexto en español y extraer:
-   - **feature**: el área o módulo principal (ej. `auth`, `cart`, `payment`, `catalog`, `admin`, `dashboard`).
-   - **action**: la acción principal (ej. `add`, `fix`, `refactor`, `integrate`, `migrate`, `optimize`).
-2. Normalizar ambos segmentos:
-   - minúsculas
-   - kebab-case (guiones entre palabras, sin espacios)
-   - sin acentos ni caracteres fuera de `[a-z-]`
-   - sin guion al inicio ni al final
-   - `feature` en singular, sin artículos ("el", "la")
-3. Si hay un **contexto adicional** (tecnología, sub-módulo, proveedor), puede agregarse como tercer segmento intermedio: `feature-context-action`. Ejemplo: `payment-stripe-integration`.
-4. Generar entre **3 y 5** propuestas distintas.
-5. Marcar una como **recomendada**.
-
-## Reglas de formato estrictas
-
-| Regla | Detalle |
-|---|---|
-| Caracteres permitidos | Solo `[a-z]` y guion (`-`) |
-| Forma | `feature-action` o `feature-context-action` |
-| Plural | `feature` en singular |
-| `action` | Forma corta o infinitivo: `fix`, `add`, `refactor`, `integrate`, `migrate`, `debug`, `optimize`, `remove`, `wire`, `hook`, `setup`, `scaffold`, `implement`, `extract` |
-| Longitud | Idealmente ≤ 40 caracteres |
-| Prohibido | Acentos, espacios, guion bajo, guion inicial/final, mayúsculas |
-
-## Salida esperada
-
-Responder siempre con este formato:
+## Salida
 
 ```
-**Recomendado:** `<nombre-elegido>`
+**Recomendado:** `<nombre>`
 
-1. `<feature>-<action>` — justificación de 1 línea.
-2. `<feature>-<action>` — justificación de 1 línea.
-3. `<feature>-<action>` — justificación de 1 línea.
-4. (opcional) `<feature>-<context>-<action>` — justificación.
-5. (opcional) `<feature>-<action>` — justificación.
+1. `<nombre>` — razón en ≤ 8 palabras.
+2. `<nombre>` — razón en ≤ 8 palabras.
+3. `<nombre>` — razón en ≤ 8 palabras.
+Contexto usado: argumento | conversación | git
 ```
 
-Después de la lista, recordar al usuario que el skill **solo propone**: debe aplicar el título manualmente en el arnés que esté usando.
+Entre 3 y 5 propuestas, una marcada como recomendada.
 
-## Ejemplos
+## Elegir y aplicar
 
-**Contexto:** "En esta sesión agregué login con credenciales al panel de admin."
+1. **Elegir**: pide al usuario elegir una propuesta; la recomendada va primero. Usa la herramienta nativa de preguntas (`AskUserQuestion` en Claude Code, `question` en OpenCode). Si no existe, usa opciones numeradas en texto. Acepta texto libre. No elijas por el usuario.
+2. **Aplicar**:
+   - Si `session_rename` está entre tus herramientas (OpenCode con el plugin instalado), llámala con el nombre elegido y confirma el resultado.
+   - Si no está (Claude Code y Codex no permiten renombrar desde una skill), muestra la línea `/rename <nombre>` lista para pegar y di que el título se aplica con ese comando.
+3. Si `session_rename` falla, muestra el error tal cual y ofrece `/rename <nombre>` como alternativa.
 
-```
-**Recomendado:** `auth-add-credentials`
+Aplicar el título no cuenta como lectura y no requiere consultas adicionales.
 
-1. `auth-add-credentials` — describe exactamente el cambio de credenciales.
-2. `admin-login-wire` — enfoca el área admin y la integración del login.
-3. `auth-setup` — versión corta, adecuada si hubo múltiples tareas de auth.
-```
+## Referencias
 
-**Contexto:** "Refactoricé el carrito para usar Zustand en lugar de Context."
-
-```
-**Recomendado:** `cart-migrate-zustand`
-
-1. `cart-migrate-zustand` — captura el cambio de estado y la tecnología destino.
-2. `cart-refactor-state` — versión genérica del refactor de estado.
-3. `state-cart-zustand` — invierte el orden, útil si el foco es el state global.
-```
-
-**Contexto:** "Integré Stripe para procesar pagos en el checkout."
-
-```
-**Recomendado:** `payment-stripe-integration`
-
-1. `payment-stripe-integration` — incluye el proveedor y la acción.
-2. `checkout-stripe-wire` — vista desde el módulo checkout.
-3. `payment-stripe-add` — variante más corta con la acción `add`.
-```
-
-**Contexto:** "Corregí un bug en el cálculo de envío del carrito."
-
-```
-**Recomendado:** `cart-fix-shipping`
-
-1. `cart-fix-shipping` — feature + sub-área + acción.
-2. `shipping-fix-cart` — reordenado, útil si `shipping` es el área principal.
-3. `cart-bug-fix-shipping` — variante explícita del bug-fix.
-```
-
-## Anti-ejemplos (NO hacer)
-
-- `Auth-Fix` → mayúsculas prohibidas.
-- `cart_fix` → guion bajo prohibido.
-- `auth-fix-` → guion final prohibido.
-- `Pago-Stripe` → acentos y mayúsculas prohibidas.
-- `added-login-feature` → comienza con verbo; debe comenzar con `feature`.
+- `references/examples.md`: ejemplos y anti-ejemplos. Léelo solo si hay duda sobre el formato; no lo cargues por defecto.

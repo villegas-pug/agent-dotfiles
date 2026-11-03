@@ -1,9 +1,9 @@
 ---
-name: sync-agents
+name: align-dotfiles-harnesses
 description: Compara y alinea skills, agentes y comandos entre OpenCode, Codex y Claude Code dentro del clon de agent-dotfiles. Si falta el modo, lo solicita mediante un selector; apply pide decisiones y confirmación por elemento.
 ---
 
-# Sync Agents
+# Align Dotfiles Harnesses
 
 ## Alcance
 
